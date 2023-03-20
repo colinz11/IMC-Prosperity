@@ -26,7 +26,8 @@ class Trader:
 
                 # Define a fair value for the PEARLS.
                 # Note that this value of 1 is just a dummy value, you should likely change it!
-                acceptable_price = 4945
+                acceptable_price_buy = 9999
+                acceptable_price_sell = 10001
 
                 # If statement checks if there are any SELL orders in the PEARLS market
                 if len(order_depth.sell_orders) > 0:
@@ -37,7 +38,7 @@ class Trader:
                     best_ask_volume = order_depth.sell_orders[best_ask]
 
                     # Check if the lowest ask (sell order) is lower than the above defined fair value
-                    if best_ask < acceptable_price:
+                    if best_ask < acceptable_price_buy:
 
                         # In case the lowest ask is lower than our fair value,
                         # This presents an opportunity for us to buy cheaply
@@ -54,7 +55,7 @@ class Trader:
                 if len(order_depth.buy_orders) != 0:
                     best_bid = max(order_depth.buy_orders.keys())
                     best_bid_volume = order_depth.buy_orders[best_bid]
-                    if best_bid > acceptable_price:
+                    if best_bid > acceptable_price_sell:
                         print("SELL", str(best_bid_volume) + "x", best_bid)
                         orders.append(Order(product, best_bid, -best_bid_volume))
 
