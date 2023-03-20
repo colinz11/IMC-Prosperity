@@ -1,10 +1,38 @@
-import numpy as np
-import pandas as pd
-
-from datamodel import TradingState, Listing, OrderDepth, Order
-
+from datamodel import *
+from typing import *
 from collections import deque
 
+
+
+class ExponentialMovingAverage:
+        def __init__(self, size, smoothing=2):
+            """
+            Initialize your data structure here.
+            :type size: int
+            """
+            self.windowSize = size
+            self.windowSum = 0
+            self.data = deque([])
+            self.smoothing = smoothing
+            self.ema = 0
+
+        def next(self, val):
+            """
+            :type val: int
+            :rtype: float
+            """
+            data = self.data
+
+            if len(data) == self.windowSize:
+                 self.ema = self.windowSum/self.windowSize
+            if len(data) > self.windowSize:
+                self.ema = (val * (self.smoothing / (1 + self.windowSize))) + self.ema * (1 - (self.smoothing / (1 + self.windowSize)))
+                return self.ema
+            self.windowSum += val
+            data.append(val)
+            return self.windowSum / len(data)
+
+            
 
 class MovingAverage:
         def __init__(self, size):
