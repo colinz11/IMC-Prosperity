@@ -69,9 +69,7 @@ class Trader:
         
         results = {}
 
-        window_size = 10
-
-        moving_average = MovingAverage(window_size)
+        moving_average = MovingAverage(10)
 
         # Iterate over all the keys (the available products) contained in the order depths
         for product in state.order_depths.keys():
