@@ -1,6 +1,9 @@
 from datamodel import *
 import math
 class Trader:
+    def __init__(self) -> None:
+        self.sell = 0
+        self.buy = 0
     def run(self, state: TradingState) -> Dict[str, List[Order]]:
         result = {}
         orders: list[Order] = []
@@ -16,4 +19,12 @@ class Trader:
         result[product] = orders
         print(state.own_trades)
         print(state.position)
+        if product in state.own_trades.keys():
+            for trade in state.own_trades[product]:
+                if trade.timestamp == state.timestamp - 100:
+                    if trade.buyer == 'SUBMISSION':
+                        self.buy += trade.price*trade.quantity
+                    else:
+                        self.sell += trade.price*trade.quantity
+        print(self.sell - self.buy)
         return result
