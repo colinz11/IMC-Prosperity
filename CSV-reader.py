@@ -23,15 +23,15 @@ def split_data_by_product(df):
 
 
 def main():
-    fileName = "dataimc.csv"
+    fileName = "colinz_bananas_2.csv"
     product = "BANANAS"
 
     df_both = read_market_data(fileName)
     df_single = split_data_by_product(df_both)
     df = df_single[product]
     fig = go.Figure()
-    fig.add_trace(go.Scatter(name="best bid", x=df["timestamp"], y=df["bid_price_1"]))
-    fig.add_trace(go.Scatter(name="best ask", x=df["timestamp"], y=df["ask_price_1"]))
+    fig.add_trace(go.Scatter(name="profit & loss", x=df["timestamp"], y=df["profit_and_loss"]))
+    # fig.add_trace(go.Scatter(name="best ask", x=df["timestamp"], y=df["ask_price_1"]))
 
     fig.show()
 
