@@ -22,10 +22,9 @@ class Trader:
         print('mid_pirce: ' + str(mid_price))
 
 
-        if position == 0: 
-            orders.append(Order(product, mid_price + 2, max_sell))
-            orders.append(Order(product, mid_price - 2, max_buy))
-        if position >= 0: 
+        orders.append(Order(product, mid_price + 2, max_sell))
+        orders.append(Order(product, mid_price - 2, max_buy))
+    
 
         
         result[product] = orders
