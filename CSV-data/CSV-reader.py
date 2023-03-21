@@ -23,8 +23,8 @@ def split_data_by_product(df):
 
 
 def main():
-    fileName = "colinz_bananas_2.csv"
-    product = "BANANAS"
+    fileName = "market_making_taking_max_1131.csv"
+    product = "PEARLS"
 
     df_both = read_market_data(fileName)
     df_single = split_data_by_product(df_both)
