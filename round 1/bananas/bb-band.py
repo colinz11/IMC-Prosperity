@@ -1,6 +1,7 @@
 from datamodel import *
 from typing import *
 from collections import deque
+from math import sqrt
 
 class Logger:
     def __init__(self) -> None:
@@ -20,34 +21,6 @@ class Logger:
 
 logger = Logger()
 
-class ExponentialMovingAverage:
-        def __init__(self, size, smoothing=2):
-            """
-            Initialize your data structure here.
-            :type size: int
-            """
-            self.windowSize = size
-            self.windowSum = 0
-            self.data = deque([])
-            self.smoothing = smoothing
-            self.ema = 0
-
-        def next(self, val):
-            """
-            :type val: int
-            :rtype: float
-            """
-            data = self.data
-
-            if len(data) == self.windowSize:
-                self.ema = self.windowSum/self.windowSize
-            if len(data) > self.windowSize:
-                self.ema = (val * (self.smoothing / (1 + self.windowSize))) + self.ema * (1 - (self.smoothing / (1 + self.windowSize)))
-                return self.ema
-            self.windowSum += val
-            data.append(val)
-            return 0
- 
 class MovingAverage:
         def __init__(self, size):
             """
@@ -75,15 +48,39 @@ class MovingAverage:
             if len(data) < self.windowSize:
                 return self.windowSum / len(data)
             return self.windowSum / self.windowSize
-        
+
+
+class RollingStatistic():
+    def __init__(self, window_size, average, variance):
+        self.N = window_size
+        self.average = average
+        self.variance = variance
+        self.stddev = sqrt(variance)
+        self.data = deque([])
+
+    def update(self, new):
+        data = self.data
+        old = 0
+        if len(data) >= self.N:
+            old = data.popleft()
+        data.append(new)
+
+        oldavg = self.average
+        newavg = oldavg + (new - old)/self.N
+        self.average = newavg
+        self.variance += (new-old)*(new-newavg+old-oldavg)/(self.N-1)
+        self.stddev = sqrt(self.variance)
+        if len(data) < self.N:
+            return 0
+        return self.stddev
+
 class Trader:
     
     def __init__(self) -> None:
-        self.ema12 = ExponentialMovingAverage(12)
-        self.ema26 = ExponentialMovingAverage(26)
+        self.rs = RollingStatistic(20, 0, 0 )
+        self.ma20 = MovingAverage(20)
 
     def run(self, state: TradingState) -> Dict[str, List[Order]]:
-
         results = {}
        
         # Iterate over all the keys (the available products) contained in the order depths
@@ -91,20 +88,21 @@ class Trader:
 
             if product == 'BANANAS':
 
-                # Retrieve the Order Depth containing all the market BUY and SELL orders for PEARLS
+                
                 order_depth: OrderDepth = state.order_depths[product]
 
-                # Initialize the list of Orders to be sent as an empty list
+                
                 orders: list[Order] = []
                 best_ask = min(order_depth.sell_orders.keys()) 
                 best_bid = max(order_depth.buy_orders.keys()) 
                 mid_price = (best_ask + best_bid) / 2
-                
-                ema_12 = self.ema12.next(mid_price)
-                ema_26 = self.ema26.next(mid_price)
-                momentum = ema_12 - ema_26
-                if ema_26 == 0:
-                    momentum = 0
+
+
+                ma = self.ma20.next(mid_price) 
+                sd = self.rs.update(mid_price)
+
+                upbb = ma + 2*sd
+                lbb = ma - 2*sd 
 
                 if product in state.position.keys():
                     current_position = state.position[product]
@@ -114,24 +112,26 @@ class Trader:
                 can_buy = 20 - current_position
                 can_sell = 20 - (-1 * current_position)
 
-              
-                
-                orders.append(Order(product, mid_price - 1, can_buy)) 
-                orders.append(Order(product, mid_price + 1, -can_sell))   
-                    
+                if state.timestamp >= 2000:
+                    if mid_price > upbb:
+                        if len(order_depth.buy_orders) > 0:
+                            best_bid = max(order_depth.buy_orders.keys())
+                            best_bid_volume = abs(order_depth.buy_orders[best_bid])
+                            quantity = min(can_sell, best_bid_volume)
+
+                            print("SELL", str(quantity) + "x", best_bid)
+                            orders.append(Order(product, best_bid, -quantity))
+                    if mid_price < lbb:
+                        if len(order_depth.sell_orders) > 0:
+                            best_ask = min(order_depth.sell_orders.keys())
+                            best_ask_volume = abs(order_depth.sell_orders[best_ask])
+
+                            quantity = min(can_buy, best_ask_volume)
+
+                            print("BUY", str(-quantity) + "x", best_ask)
+                            orders.append(Order(product, best_ask, quantity))
 
                 results[product] = orders
 
         logger.flush(state, results)
         return results
-    
-  
-        
-    
-  
-        
-
-
-
-
-
