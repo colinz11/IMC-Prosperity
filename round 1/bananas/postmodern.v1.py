@@ -62,14 +62,16 @@ class Trader:
                 still_buying = True
                 still_selling = True
 
-                inventory_risk_aversion = 0.1
+                inventory_risk_aversion = 0.02
                 order_book_liquidity = 1.5
-                volatility = 2
+                volatility = 1.5
                 T = 1
 
                 acceptable_price = mid_price - current_position * inventory_risk_aversion * volatility**2 * (T - state.timestamp/1000000)
 
                 bid_ask_spread = 2/inventory_risk_aversion * math.log(1 + inventory_risk_aversion/order_book_liquidity)
+
+                print("mid-price " + str(mid_price) + " acceptable-price " + str(acceptable_price) + " bid_ask_spread " + str(bid_ask_spread))
 
                 while still_buying:
                     if len(order_depth.sell_orders) > 0:
@@ -97,7 +99,7 @@ class Trader:
                             else:
                                 still_buying = False
                         else:
-                            orders.append(Order(product, acceptable_price-bid_ask_spread/2, can_buy))
+                            orders.append(Order(product, acceptable_price-bid_ask_spread, can_buy))
                             still_buying = False
 
                     else:
@@ -129,7 +131,7 @@ class Trader:
                             else:
                                 still_selling = False
                         else:
-                            orders.append(Order(product, acceptable_price + bid_ask_spread/2, -can_sell))
+                            orders.append(Order(product, acceptable_price + bid_ask_spread, -can_sell))
                             still_selling = False
                     else:
                         still_selling = False
