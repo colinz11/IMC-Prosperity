@@ -1,7 +1,7 @@
 import json
 from typing import Any
 from datamodel import *
-import numpy as np
+import statistics as s
 
 
 class Logger:
@@ -24,31 +24,21 @@ class Logger:
 logger = Logger()
 
 
-class ZScore:
-    def __init__(self) -> None:
-        self.prices = []
-        self.zscores = []
-
-    def next(self, price):
-        self.prices.append(price)
-        sd = np.std(self.prices)
-        mean = np.mean(self.prices)
-
-        for i in range(len(self.prices)):
-            self.zscores.append((self.prices[i] - mean) / sd)
-
-        return self.zscores
-
-
 class Trader:
 
     def __init__(self) -> None:
-        self.zscore = ZScore()
+        self.ratios = []
+
+    def zscore(self, series):
+        if len(series) < 10:
+            return [0]
+        return [(series[i] - s.mean(series)) / s.stdev(series) for i in range(len(series))]
 
     def run(self, state: TradingState) -> Dict[str, List[Order]]:
 
         result = {}
-        orders: list[Order] = []
+        orders_coco: list[Order] = []
+        orders_pc: list[Order] = []
         # Iterate over all the keys (the available products) contained in the order depths
         for product in state.order_depths.keys():
 
@@ -81,25 +71,19 @@ class Trader:
                 pc_sell = 300 - (-1 * pc_position)
 
         ratio = coco_mid_price / pc_mid_price
-        zscores = self.zscore.next(ratio)
+        self.ratios.append(ratio)
 
-        sd_zscores = np.std(zscores)
-        mean_zscores = np.mean(zscores)
-        up_limit = mean_zscores + sd_zscores
-        lower_limit = mean_zscores - sd_zscores
+        zscores = self.zscore(self.ratios)
 
-        print('Ratio: ' + str(ratio))
-        print('Mean zscores: ' + str(mean_zscores))
-        print('SD zscores: ' + str(sd_zscores))
-        print('Z score: ' + str(zscores[-1]))
+        if zscores[-1] > 1:  # short first
+            orders_coco.append(Order('COCONUTS', coco_mid_price - 2, -coco_sell))
+            orders_pc.append(Order('PINA_COLADAS', pc_mid_price + 2, pc_buy))
+        elif zscores[-1] < -1:  # long first
+            orders_coco.append(Order('COCONUTS', coco_mid_price + 2, coco_buy))
+            orders_pc.append(Order('PINA_COLADAS', pc_mid_price - 2, -pc_sell))
 
-        if zscores[-1] > up_limit:  # short first
-            orders.append(Order('COCONUTS', coco_mid_price, -coco_sell))
-            orders.append(Order('PINA_COLADAS', pc_mid_price, pc_buy))
-        elif zscores[-1] < lower_limit:  # long first
-            orders.append(Order('COCONUTS', coco_mid_price, coco_buy))
-            orders.append(Order('PINA_COLADAS', pc_mid_price, -pc_sell))
-        result[product] = orders
+        result['COCONUTS'] = orders_coco
+        result['PINA_COLADAS'] = orders_pc
 
         logger.flush(state, result)
         return result
