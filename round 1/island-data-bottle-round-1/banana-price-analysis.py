@@ -42,7 +42,7 @@ def read_market_data(fileName):
 
 
 def main():
-    fileName = "prices_round_1_day_-2.csv"
+    fileName = "prices_round_1_day_0.csv"
     product = "PEARLS"
 
     df = read_market_data(fileName)
