@@ -26,32 +26,115 @@ logger = Logger()
 
 
 class Trader:
-    def __init__(self) -> None:
-        self.sell = 0
-        self.buy = 0
 
     def run(self, state: TradingState) -> Dict[str, List[Order]]:
+        """
+        Only method required. It takes all buy and sell orders for all symbols as an input,
+        and outputs a list of orders to be sent
+        """
+        # Initialize the method output dict as an empty dict
         result = {}
-        orders: list[Order] = []
-        product = 'BANANAS'
 
-        reserv_price =
+        # Iterate over all the keys (the available products) contained in the order depths
+        for product in state.order_depths.keys():
 
-        position = 0
-        if product in state.position.keys():
-            position = state.position[product]
+            # Check if the current product is the 'PEARLS' product, only then run the order logic
+            if product == 'BANANAS':
 
-        max_sell = -abs(position - 20)
-        max_buy = abs(position - 20)
+                # Retrieve the Order Depth containing all the market BUY and SELL orders for PEARLS
+                order_depth: OrderDepth = state.order_depths[product]
 
-        best_ask = min(state.order_depths[product].sell_orders.keys())
-        best_bid = max(state.order_depths[product].buy_orders.keys())
-        mid_price = (best_ask + best_bid) / 2
-        print('mid_price: ' + str(mid_price))
+                # Initialize the list of Orders to be sent as an empty list
+                orders: list[Order] = []
 
-        orders.append(Order(product, mid_price + 2, max_sell))
-        orders.append(Order(product, mid_price - 2, max_buy))
+                best_ask = min(order_depth.sell_orders.keys())
+                best_bid = max(order_depth.buy_orders.keys())
+                mid_price = (best_ask + best_bid) / 2
 
-        result[product] = orders
+                if product in state.position.keys():
+                    current_position = state.position[product]
+                else:
+                    current_position = 0
+
+                can_buy = 20 - current_position
+                can_sell = 20 - (-1 * current_position)
+
+                still_buying = True
+                still_selling = True
+
+                inventory_risk_aversion = 0.1
+                order_book_liquidity = 1.5
+                volatility = 2
+                T = 1
+
+                acceptable_price = mid_price - current_position * inventory_risk_aversion * volatility**2 * (T - state.timestamp/1000000)
+
+                bid_ask_spread = 2/inventory_risk_aversion * math.log(1 + inventory_risk_aversion/order_book_liquidity)
+
+                while still_buying:
+                    if len(order_depth.sell_orders) > 0:
+                        best_ask = min(order_depth.sell_orders.keys())
+                        best_ask_volume = abs(order_depth.sell_orders[best_ask])
+
+                        if can_buy <= 0:
+                            still_buying = False
+                        elif best_ask < acceptable_price:
+                            quantity = min(can_buy, best_ask_volume)
+
+                            print("BUY", str(-quantity) + "x", best_ask)
+                            orders.append(Order(product, best_ask, quantity))
+
+                            order_depth.sell_orders.pop(best_ask)
+                            can_buy -= quantity
+                        elif best_ask == acceptable_price:
+                            if can_buy > 20:
+                                quantity = min(can_buy - 20, best_ask_volume)
+                                print("BUY", str(-quantity) + "x", best_ask)
+                                orders.append(Order(product, best_ask, quantity))
+
+                                order_depth.sell_orders.pop(best_ask)
+                                can_buy -= quantity
+                            else:
+                                still_buying = False
+                        else:
+                            orders.append(Order(product, acceptable_price-bid_ask_spread/2, can_buy))
+                            still_buying = False
+
+                    else:
+                        still_buying = False
+
+                while still_selling:
+                    if len(order_depth.buy_orders) > 0:
+                        best_bid = max(order_depth.buy_orders.keys())
+                        best_bid_volume = abs(order_depth.buy_orders[best_bid])
+                        if can_sell <= 0:
+                            still_selling = False
+                        elif best_bid > acceptable_price:
+                            quantity = min(can_sell, best_bid_volume)
+
+                            print("SELL", str(quantity) + "x", best_bid)
+                            orders.append(Order(product, best_bid, -quantity))
+
+                            order_depth.buy_orders.pop(best_bid)
+                            can_sell -= quantity
+                        elif best_bid == acceptable_price:
+                            if can_sell > 20:
+                                quantity = min(can_sell - 20, best_bid_volume)
+
+                                print("SELL", str(quantity) + "x", best_bid)
+                                orders.append(Order(product, best_bid, -quantity))
+
+                                order_depth.buy_orders.pop(best_bid)
+                                can_sell -= quantity
+                            else:
+                                still_selling = False
+                        else:
+                            orders.append(Order(product, acceptable_price + bid_ask_spread/2, -can_sell))
+                            still_selling = False
+                    else:
+                        still_selling = False
+
+                result[product] = orders
+
         logger.flush(state, result)
         return result
