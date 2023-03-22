@@ -2,8 +2,6 @@ from datamodel import *
 from typing import *
 from collections import deque
 
-
-
 class ExponentialMovingAverage:
         def __init__(self, size, smoothing=2):
             """
@@ -31,9 +29,7 @@ class ExponentialMovingAverage:
             self.windowSum += val
             data.append(val)
             return self.windowSum / len(data)
-
-            
-
+ 
 class MovingAverage:
         def __init__(self, size):
             """
@@ -67,13 +63,10 @@ class Trader:
     def __init__(self) -> None:
         self.ma20 = MovingAverage(20)
         self.ma50 = MovingAverage(50)
-        self.sell = 0
-        self.buy = 0
 
     def run(self, state: TradingState) -> Dict[str, List[Order]]:
         
         results = {}
-
        
         # Iterate over all the keys (the available products) contained in the order depths
         for product in state.order_depths.keys():
@@ -109,16 +102,7 @@ class Trader:
 
                 results[product] = orders
 
-                print(state.own_trades)
-                print(state.position)
-                if product in state.own_trades.keys():
-                    for trade in state.own_trades[product]:
-                        if trade.timestamp == state.timestamp - 100:
-                            if trade.buyer == 'SUBMISSION':
-                                self.buy += trade.price*trade.quantity
-                            else:
-                                self.sell += trade.price*trade.quantity
-                print(self.sell - self.buy)
+              
         return results
     
     def get_mid_price(self, state, product):
