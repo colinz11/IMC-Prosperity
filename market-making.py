@@ -33,8 +33,12 @@ class Trader:
         else:
             max_sell = -20
             max_buy = 20
+
+   
+
         orders.append(Order(product, 10001 , max_sell))
         orders.append(Order(product, 9999 , max_buy))
+
         result[product] = orders
         logger.flush(state, result)
         return result
