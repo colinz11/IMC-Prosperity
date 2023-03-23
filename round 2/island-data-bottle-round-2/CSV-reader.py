@@ -23,17 +23,19 @@ def split_data_by_product(df):
 
 
 def main():
-    fileName = "market_making_taking_max_1131.csv"
-    product = "PEARLS"
+    fileName = "prices_round_2_day_-1.csv"
+    product = "PINA_COLADAS"
 
     df_both = read_market_data(fileName)
     df_single = split_data_by_product(df_both)
     df = df_single[product]
-    fig = go.Figure()
-    fig.add_trace(go.Scatter(name="profit & loss", x=df["timestamp"], y=df["profit_and_loss"]))
+    df.to_csv('pc_prices.csv')
+
+#    fig = go.Figure()
+#    fig.add_trace(go.Scatter(name="profit & loss", x=df["timestamp"], y=df["profit_and_loss"]))
     # fig.add_trace(go.Scatter(name="best ask", x=df["timestamp"], y=df["ask_price_1"]))
 
-    fig.show()
+#    fig.show()
 
 
 main()

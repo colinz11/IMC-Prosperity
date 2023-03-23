@@ -6,30 +6,6 @@ import numpy as np
 from math import sqrt
 
 
-class RollingStatistic:
-    def __init__(self, window_size, average, variance):
-        self.N = window_size
-        self.average = average
-        self.variance = variance
-        self.stddev = sqrt(variance)
-        self.data = deque([])
-
-    def update(self, new):
-        data = self.data
-        old = 0
-        if len(data) >= self.N:
-            old = data.popleft()
-        data.append(new)
-
-        oldavg = self.average
-        newavg = oldavg + (new - old)/self.N
-        self.average = newavg
-        self.variance += (new-old)*(new-newavg+old-oldavg)/(self.N-1)
-        self.stddev = sqrt(self.variance)
-        if len(data) < self.N:
-            return 0
-        return self.stddev
-
 def read_market_data(fileName):
     df = pd.read_csv(fileName).fillna("")
     cols = df.columns.tolist()[0].split(';')
