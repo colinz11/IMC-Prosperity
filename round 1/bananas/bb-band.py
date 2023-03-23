@@ -101,8 +101,8 @@ class Trader:
                 ma = self.ma20.next(mid_price) 
                 sd = self.rs.update(mid_price)
 
-                upbb = ma + 2*sd
-                lbb = ma - 2*sd 
+                upbb = ma + 1.75*sd
+                lbb = ma - 1.75*sd 
 
                 if product in state.position.keys():
                     current_position = state.position[product]
@@ -115,21 +115,10 @@ class Trader:
                 if state.timestamp >= 2000:
                     if mid_price > upbb:
                         if len(order_depth.buy_orders) > 0:
-                            best_bid = max(order_depth.buy_orders.keys())
-                            best_bid_volume = abs(order_depth.buy_orders[best_bid])
-                            quantity = min(can_sell, best_bid_volume)
-
-                            print("SELL", str(quantity) + "x", best_bid)
-                            orders.append(Order(product, best_bid, -quantity))
+                            orders.append(Order(product, upbb, -can_sell))
                     if mid_price < lbb:
                         if len(order_depth.sell_orders) > 0:
-                            best_ask = min(order_depth.sell_orders.keys())
-                            best_ask_volume = abs(order_depth.sell_orders[best_ask])
-
-                            quantity = min(can_buy, best_ask_volume)
-
-                            print("BUY", str(-quantity) + "x", best_ask)
-                            orders.append(Order(product, best_ask, quantity))
+                            orders.append(Order(product, lbb, can_buy))
 
                 results[product] = orders
 

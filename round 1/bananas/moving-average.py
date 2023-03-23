@@ -102,9 +102,7 @@ class Trader:
                 
                 ema_12 = self.ema12.next(mid_price)
                 ema_26 = self.ema26.next(mid_price)
-                momentum = ema_12 - ema_26
-                if ema_26 == 0:
-                    momentum = 0
+               
 
                 if product in state.position.keys():
                     current_position = state.position[product]
