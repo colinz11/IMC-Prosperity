@@ -87,10 +87,10 @@ def simulate(round: int, day: int, trader):
             position[product] * last_prices[product] if product in last_prices else 0 for product in position)
         historical_penal.append(pnl)
         prev_time = time
-    #print(pnl, (cash, position))
+    print(pnl, (cash, position))
     plt.plot(df_prices["timestamp"], historical_penal)
     plt.show()
 
 
 if __name__ == '__main__':
-    simulate(2, 1, Trader())
+    simulate(2, -1, Trader())
