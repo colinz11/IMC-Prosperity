@@ -26,13 +26,9 @@ logger = Logger()
 class Trader:
 
     def __init__(self) -> None:
-<<<<<<< Updated upstream
         self.ratios = []
         self.coco_mid_prices = []
         self.pc_mid_prices = []
-=======
-        self.spreads = []
->>>>>>> Stashed changes
    
 
     def zscore(self, series, window):
@@ -81,13 +77,8 @@ class Trader:
         self.spreads.append(spread)
         
 
-<<<<<<< Updated upstream
         zscores = self.zscore(self.ratios)
         #print(zscores)
-=======
-        zscores = self.zscore(self.spreads, 20)
-        print(zscores)
->>>>>>> Stashed changes
       
         
 
