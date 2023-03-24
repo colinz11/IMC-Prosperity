@@ -61,8 +61,6 @@ def main():
 
     df['pc_price'] = list(pc_price)
 
-    print(df)
-
     result = stat.OLS(df['coco_price'], df['pc_price']).fit()
     c_t = ts.adfuller(result.resid)
 

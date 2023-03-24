@@ -3,6 +3,7 @@ from typing import Any
 from datamodel import *
 import statistics as s
 
+
 class Logger:
     def __init__(self) -> None:
         self.logs = ""
@@ -19,6 +20,7 @@ class Logger:
 
         self.logs = ""
 
+
 logger = Logger()
 
 
@@ -28,7 +30,6 @@ class Trader:
         self.ratios = []
         self.coco_mid_prices = []
         self.pc_mid_prices = []
-   
 
     def zscore(self, series):
         if len(series) < 10:
@@ -39,15 +40,15 @@ class Trader:
     def run(self, state: TradingState) -> Dict[str, List[Order]]:
 
         result = {}
-        orders_coco: list[Order] = []    
-        orders_pc: list[Order] = []  
+        orders_coco: list[Order] = []
+        orders_pc: list[Order] = []
         # Iterate over all the keys (the available products) contained in the order depths
         for product in state.order_depths.keys():
-            
+
             if product == 'COCONUTS':
                 coco_order_depth: OrderDepth = state.order_depths[product]
-                coco_best_ask = min(coco_order_depth.sell_orders.keys()) 
-                coco_best_bid = max(coco_order_depth.buy_orders.keys()) 
+                coco_best_ask = min(coco_order_depth.sell_orders.keys())
+                coco_best_bid = max(coco_order_depth.buy_orders.keys())
                 coco_mid_price = (coco_best_ask + coco_best_bid) / 2
 
                 if product in state.position.keys():
@@ -60,8 +61,8 @@ class Trader:
 
             if product == 'PINA_COLADAS':
                 pc_order_depth: OrderDepth = state.order_depths[product]
-                pc_best_ask = min(pc_order_depth.sell_orders.keys()) 
-                pc_best_bid = max(pc_order_depth.buy_orders.keys()) 
+                pc_best_ask = min(pc_order_depth.sell_orders.keys())
+                pc_best_bid = max(pc_order_depth.buy_orders.keys())
                 pc_mid_price = (pc_best_ask + pc_best_bid) / 2
 
                 if product in state.position.keys():
@@ -72,31 +73,28 @@ class Trader:
                 pc_buy = 300 - pc_position
                 pc_sell = 300 - (-1 * pc_position)
 
-        ratio = coco_mid_price/pc_mid_price
+        ratio = coco_mid_price / pc_mid_price
         self.ratios.append(ratio)
-        
 
         zscores = self.zscore(self.ratios)
-        #print(zscores)
-      
-        
+        print(zscores)
 
-        if zscores > 0.95: #short first
+        if zscores > 0.95:  # short first
             orders_coco.append(Order('COCONUTS', coco_mid_price - 1, -coco_sell))
             orders_pc.append(Order('PINA_COLADAS', pc_mid_price + 1, pc_buy))
-        elif zscores < -0.95: #long first
+        elif zscores < -0.95:  # long first
             orders_coco.append(Order('COCONUTS', coco_mid_price + 1, coco_buy))
             orders_pc.append(Order('PINA_COLADAS', pc_mid_price - 1, -pc_sell))
-        
+
         self.coco_mid_prices.append(coco_mid_price)
         self.pc_mid_prices.append(pc_mid_price)
 
-        if state.timestamp is 99900:
-            print("coco_prices")
-            print(self.coco_mid_prices)
-            print("pc_prices")
-            print(self.pc_mid_prices)
-            
+        # if state.timestamp is 99900:
+        #     print("coco_prices")
+        #     print(self.coco_mid_prices)
+        #     print("pc_prices")
+        #     print(self.pc_mid_prices)
+
         result['COCONUTS'] = orders_coco
         result['PINA_COLADAS'] = orders_pc
 
