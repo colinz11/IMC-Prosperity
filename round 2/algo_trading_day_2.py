@@ -196,10 +196,10 @@ class Trader:
         zscores = self.zscore(self.ratios)
         print(zscores)
 
-        if zscores > 1:  # short first
+        if 1 < zscores < 3:  # short first
             orders_coco.append(Order('COCONUTS', coco_mid_price - 0.5, -coco_sell))
             orders_pc.append(Order('PINA_COLADAS', pc_mid_price + 0.5, pc_buy))
-        elif zscores < -1:  # long first
+        elif -3 < zscores < -1:  # long first
             orders_coco.append(Order('COCONUTS', coco_mid_price + 0.5, coco_buy))
             orders_pc.append(Order('PINA_COLADAS', pc_mid_price - 0.5, -pc_sell))
 
