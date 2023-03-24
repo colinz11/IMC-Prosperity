@@ -2,6 +2,7 @@ import json
 from typing import Any
 from datamodel import *
 import statistics as s
+import math
 
 class Logger:
     def __init__(self) -> None:
@@ -25,16 +26,20 @@ logger = Logger()
 class Trader:
 
     def __init__(self) -> None:
+<<<<<<< Updated upstream
         self.ratios = []
         self.coco_mid_prices = []
         self.pc_mid_prices = []
+=======
+        self.spreads = []
+>>>>>>> Stashed changes
    
 
-    def zscore(self, series):
-        if len(series) < 10:
-            return 0
+    def zscore(self, series, window):
+        if len(series) < window:
+            return (series[-1] - s.mean(series)) / s.stdev(series)
 
-        return (series[-1] - s.mean(series)) / s.stdev(series)
+        return (series[-1] - s.mean(series[-window:])) / s.stdev(series[-window:])
 
     def run(self, state: TradingState) -> Dict[str, List[Order]]:
 
@@ -72,12 +77,17 @@ class Trader:
                 pc_buy = 300 - pc_position
                 pc_sell = 300 - (-1 * pc_position)
 
-        ratio = coco_mid_price/pc_mid_price
-        self.ratios.append(ratio)
+        spread = math.log(pc_mid_price) - 2 * math.log(coco_mid_price)
+        self.spreads.append(spread)
         
 
+<<<<<<< Updated upstream
         zscores = self.zscore(self.ratios)
         #print(zscores)
+=======
+        zscores = self.zscore(self.spreads, 20)
+        print(zscores)
+>>>>>>> Stashed changes
       
         
 
@@ -87,6 +97,8 @@ class Trader:
         elif zscores < -0.95: #long first
             orders_coco.append(Order('COCONUTS', coco_mid_price + 1, coco_buy))
             orders_pc.append(Order('PINA_COLADAS', pc_mid_price - 1, -pc_sell))
+   
+
         
         self.coco_mid_prices.append(coco_mid_price)
         self.pc_mid_prices.append(pc_mid_price)
