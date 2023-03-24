@@ -30,10 +30,14 @@ class Trader:
     def __init__(self) -> None:
         self.ratios = []
         self.spreads = []
+        self.prev_zscore = 0
 
     def zscore(self, series):
-        if len(series) < 10:
+        if len(self.spreads) < 10:
             return 0
+
+        if len(self.spreads) > 20:
+            self.spreads.pop(0)
 
         return (series[-1] - s.mean(series)) / s.stdev(series)
 
@@ -109,7 +113,7 @@ class Trader:
                             elif best_ask < acceptable_price:
                                 quantity = min(can_buy, best_ask_volume)
 
-                                print("BUY", str(-quantity) + "x", best_ask)
+                                #print("BUY", str(-quantity) + "x", best_ask)
                                 orders.append(Order(product, best_ask, quantity))
 
                                 order_depth.sell_orders.pop(best_ask)
@@ -117,7 +121,7 @@ class Trader:
                             elif best_ask == acceptable_price:
                                 if can_buy > 20:
                                     quantity = min(can_buy - 20, best_ask_volume)
-                                    print("BUY", str(-quantity) + "x", best_ask)
+                                    #print("BUY", str(-quantity) + "x", best_ask)
                                     orders.append(Order(product, best_ask, quantity))
 
                                     order_depth.sell_orders.pop(best_ask)
@@ -140,7 +144,7 @@ class Trader:
                             elif best_bid > acceptable_price:
                                 quantity = min(can_sell, best_bid_volume)
 
-                                print("SELL", str(quantity) + "x", best_bid)
+                                #print("SELL", str(quantity) + "x", best_bid)
                                 orders.append(Order(product, best_bid, -quantity))
 
                                 order_depth.buy_orders.pop(best_bid)
@@ -149,7 +153,7 @@ class Trader:
                                 if can_sell > 20:
                                     quantity = min(can_sell - 20, best_bid_volume)
 
-                                    print("SELL", str(quantity) + "x", best_bid)
+                                    #print("SELL", str(quantity) + "x", best_bid)
                                     orders.append(Order(product, best_bid, -quantity))
 
                                     order_depth.buy_orders.pop(best_bid)
@@ -192,24 +196,27 @@ class Trader:
                     pc_buy = 300 - pc_position
                     pc_sell = 300 - (-1 * pc_position)
 
-        ratio = coco_mid_price / pc_mid_price
-        self.ratios.append(ratio)
+        # ratio = coco_mid_price / pc_mid_price
+        # self.ratios.append(ratio)
 
-        spread = 2 * math.log(coco_mid_price) - math.log(pc_mid_price)
+        spread = math.log(pc_mid_price) - 2 * math.log(coco_mid_price)
         self.spreads.append(spread)
 
         zscores = self.zscore(self.spreads)
 
+        if self.prev_zscore * zscores < 0:
+            orders_coco.append(Order('COCONUTS',))
 
-        zscores = self.zscore(self.ratios)
-        print(zscores)
 
-        if zscores > 1:  # short first
-            orders_coco.append(Order('COCONUTS', coco_mid_price - 0.5, -coco_sell))
-            orders_pc.append(Order('PINA_COLADAS', pc_mid_price + 0.5, pc_buy))
-        elif zscores < -1:  # long first
+        # zscores = self.zscore(self.ratios)
+        # print(zscores)
+
+        if 1 < zscores < 3:  # short first
             orders_coco.append(Order('COCONUTS', coco_mid_price + 0.5, coco_buy))
             orders_pc.append(Order('PINA_COLADAS', pc_mid_price - 0.5, -pc_sell))
+        elif -3 < zscores < -1:  # long first
+            orders_coco.append(Order('COCONUTS', coco_mid_price - 0.5, -coco_sell))
+            orders_pc.append(Order('PINA_COLADAS', pc_mid_price + 0.5, pc_buy))
 
         result['COCONUTS'] = orders_coco
         result['PINA_COLADAS'] = orders_pc
