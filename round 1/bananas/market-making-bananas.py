@@ -20,8 +20,9 @@ class Logger:
 
 logger = Logger()
 
+
 class Trader:
-  
+
     def run(self, state: TradingState) -> Dict[str, List[Order]]:
         result = {}
 
@@ -47,8 +48,8 @@ class Trader:
                 best_bid = max(order_depth.buy_orders.keys())
                 mid_price = (best_ask + best_bid) / 2
 
-                sell_price = worst_ask - 1
-                bid_price = worst_bid + 1
+                sell_price = worst_ask - 1 - (current_position/20)
+                bid_price = worst_bid + 1 - (current_position/20)
 
                 if sell_price < bid_price:
                     sell_price = mid_price
