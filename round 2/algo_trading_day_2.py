@@ -33,7 +33,7 @@ class Trader:
         if len(series) < 10:
             return 0
 
-        return (series[-1] - s.mean(series[-100:])) / s.stdev(series[-100:])
+        return (series[-1] - s.mean(series)) / s.stdev(series)
 
     def run(self, state: TradingState) -> Dict[str, List[Order]]:
 
@@ -197,11 +197,11 @@ class Trader:
         print(zscores)
 
         if zscores > 1:  # short first
-            orders_coco.append(Order('COCONUTS', coco_mid_price - 1, -coco_sell))
-            orders_pc.append(Order('PINA_COLADAS', pc_mid_price + 1, pc_buy))
+            orders_coco.append(Order('COCONUTS', coco_mid_price - 0.5, -coco_sell))
+            orders_pc.append(Order('PINA_COLADAS', pc_mid_price + 0.5, pc_buy))
         elif zscores < -1:  # long first
-            orders_coco.append(Order('COCONUTS', coco_mid_price + 1, coco_buy))
-            orders_pc.append(Order('PINA_COLADAS', pc_mid_price - 1, -pc_sell))
+            orders_coco.append(Order('COCONUTS', coco_mid_price + 0.5, coco_buy))
+            orders_pc.append(Order('PINA_COLADAS', pc_mid_price - 0.5, -pc_sell))
 
         result['COCONUTS'] = orders_coco
         result['PINA_COLADAS'] = orders_pc
