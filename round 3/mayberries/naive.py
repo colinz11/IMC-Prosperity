@@ -23,6 +23,7 @@ class Logger:
 
 logger = Logger()
 
+
 class Trader:
     
 
