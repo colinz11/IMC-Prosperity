@@ -5,25 +5,6 @@ import statistics as s
 import math
 
 
-class Logger:
-    def __init__(self) -> None:
-        self.logs = ""
-
-    def print(self, *objects: Any, sep: str = " ", end: str = "\n") -> None:
-        self.logs += sep.join(map(str, objects)) + end
-
-    def flush(self, state: TradingState, orders: dict[Symbol, list[Order]]) -> None:
-        print(json.dumps({
-            "state": state,
-            "orders": orders,
-            "logs": self.logs,
-        }, cls=ProsperityEncoder, separators=(",", ":"), sort_keys=True))
-
-        self.logs = ""
-
-logger = Logger()
-
-
 class Trader:
     
 
@@ -53,21 +34,20 @@ class Trader:
                     best_bid = max(order_depth.buy_orders.keys())
                     mid_price = (best_ask + best_bid) / 2
 
-                    sell_price = best_ask - 1
-                    bid_price = best_bid + 1 
+                    sell_price = worst_ask 
+                    bid_price = worst_bid 
 
                     if sell_price < bid_price:
                         sell_price = mid_price
                         bid_price = mid_price
-
-                    if state.timestamp > sell_timestamp and state.timestamp < buy_timestamp: #buy
+                    
+                    if state.timestamp >= sell_timestamp and state.timestamp < buy_timestamp: #buy
                         orders.append(Order(product, bid_price, can_buy))
-                    elif state.timestamp > buy_timestamp and state.timestamp < close:
+                    elif state.timestamp >= buy_timestamp and state.timestamp < close:
                         orders.append(Order(product, sell_price, -can_sell))
                     else:
                         orders.append(Order(product, sell_price, -can_sell))
                         orders.append(Order(product, bid_price, can_buy))
-
                     results[product] = orders
-        logger.flush(state, results)
+        #logger.flush(state, results)
         return results
