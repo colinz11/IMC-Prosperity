@@ -19,6 +19,16 @@ def read_market_data(fileName):
     return fin
 
 
+def stationarity_test(X, cutoff=0.05):
+    # H_0 in adfuller is unit root exists (non-stationary)
+    # We must observe significant p-value to convince ourselves that the series is stationary
+    pvalue = ts.adfuller(X)[1]
+    if pvalue < cutoff:
+        print('p-value = ' + str(pvalue) + ' The series ' + X.name +' is likely stationary.')
+    else:
+        print('p-value = ' + str(pvalue) + ' The series ' + X.name +' is likely non-stationary.')
+
+
 def get_average(b1, b2, b3):
     a1 = 1
     a2 = 1
@@ -61,13 +71,15 @@ def main():
 
     df['pc_price'] = list(pc_price)
 
-    result = stat.OLS(df['coco_price'], df['pc_price']).fit()
-    c_t = ts.adfuller(result.resid)
+    stationarity_test(df['coco_price'])
 
-    if c_t[0] <= c_t[4]['10%'] and c_t[1] <= 0.1:
-        print("Pair of securities is co-integrated")
-    else:
-        print("Pair of securities is not co-integrated")
+    result = stat.OLS(df['coco_price'], df['pc_price']).fit()
+    # c_t = ts.adfuller(result.resid)
+    #
+    # if c_t[0] <= c_t[4]['10%'] and c_t[1] <= 0.1:
+    #     print("Pair of securities is co-integrated")
+    # else:
+    #     print("Pair of securities is not co-integrated")
 
     # bidSum = 0
     # askSum = 0
