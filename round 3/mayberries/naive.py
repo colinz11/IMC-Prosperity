@@ -51,5 +51,6 @@ class Trader:
                     orders.append(Order(product, sell_price, -can_sell))
                     orders.append(Order(product, bid_price, can_buy))
                 results[product] = orders
+
         #logger.flush(state, results)
         return results
