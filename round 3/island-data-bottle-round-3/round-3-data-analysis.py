@@ -49,37 +49,36 @@ def get_average(b1, b2, b3):
 def main():
     fileName = "prices_round_3_day_0.csv"
 
-    df_dg = read_market_data(fileName)
-    df_ds = read_market_data(fileName)
-    df_dg.drop(df_dg.loc[df_dg['product'] != "DIVING_GEAR"].index, inplace=True)
-    df_ds.drop(df_ds.loc[df_ds['product'] != "DOLPHIN_SIGHTINGS"].index, inplace=True)
+    df = read_market_data(fileName)
+    # df_ds = read_market_data(fileName)
+    df.drop(df.loc[df['product'] != "DIVING_GEAR"].index, inplace=True)
 
-    df_dg = df_dg.replace('', 0)
-    df_ds = df_ds.replace('', 0)
+    print(df)
+    # df_ds.drop(df_ds.loc[df_ds['product'] != "DOLPHIN_SIGHTINGS"].index, inplace=True)
+    #
+    # df_dg = df_dg.replace('', 0)
+    # df_ds = df_ds.replace('', 0)
 
     # for i in range(len(df_coco.index)):
     #     print(10 * (1.9 * math.log(df_coco.iloc[i]['mid_price']) - math.log(df_pc.iloc[i]['mid_price'])))
 
-
-    df = pd.DataFrame()
-
-    df_dg.rename(columns={'mid_price': 'dg_price'}, inplace=True)
-    df_ds.rename(columns={'mid_price': 'ds_count'}, inplace=True)
-    dg_price = df_dg['dg_price']
-    ds_count = df_ds['ds_count']
-
-    df['dg_price'] = list(dg_price)
-
-    df['ds_count'] = list(ds_count)
-
-    #print(df)
-
-    results = stat.OLS(df['dg_price'], df['ds_count']).fit()
-
-    df.plot(x='ds_count', y='dg_price', kind='scatter')
-    plt.show()
-
-    print(results.summary())
+    # df_dg.rename(columns={'mid_price': 'dg_price'}, inplace=True)
+    # df_ds.rename(columns={'mid_price': 'ds_count'}, inplace=True)
+    # dg_price = df_dg['dg_price']
+    # ds_count = df_ds['ds_count']
+    #
+    # df['dg_price'] = list(dg_price)
+    #
+    # df['ds_count'] = list(ds_count)
+    #
+    # #print(df)
+    #
+    # results = stat.OLS(df['dg_price'], df['ds_count']).fit()
+    #
+    # df.plot(x='ds_count', y='dg_price', kind='scatter')
+    # plt.show()
+    #
+    # print(results.summary())
 
     #abline_plot(model_results=results.fit(), ax=ax)
 

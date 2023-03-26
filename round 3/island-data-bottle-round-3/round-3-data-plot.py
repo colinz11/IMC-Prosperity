@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import plotly.graph_objs as go
 import plotly.express as px
+import matplotlib.pyplot as plt
 
 
 def read_market_data(fileName):
@@ -23,6 +24,14 @@ def split_data_by_product(df):
     return markets
 
 
+def SMA(df):
+    return df.rolling(window=15)['mid_price'].mean()
+
+
+def BolBand(df):
+    return df.rolling(window=15)['mid_price'].std()
+
+
 def rescale(x):
     if x < 5000:
         return 20 * x + 38500
@@ -31,7 +40,7 @@ def rescale(x):
 
 
 def main():
-    fileName = "prices_round_3_day_2.csv"
+    fileName = "prices_round_3_day_0.csv"
 
     df = read_market_data(fileName)
     df.drop(df.loc[df['product'] == "BANANAS"].index, inplace=True)
@@ -39,21 +48,41 @@ def main():
     df.drop(df.loc[df['product'] == "COCONUTS"].index, inplace=True)
     df.drop(df.loc[df['product'] == "PINA_COLADAS"].index, inplace=True)
     df.drop(df.loc[df['product'] == "BERRIES"].index, inplace=True)
+    df.drop(df.loc[df['product'] == "DIVING_GEAR"].index, inplace=True)
 
     # df_single = split_data_by_product(df_both)
     # df = df_single[product]
     # df.to_csv('pc_prices.csv')
 
-    df['mid_price'] = df['mid_price'].map(rescale)
+    # Ouputs BolBands
 
-    # fig = go.Figure()
-    # fig.add_trace(go.Scatter(name="dg_price", x=df["timestamp"], y=df["mid_price"]))
-    # fig.add_trace(go.Scatter(name="best ask", x=df["timestamp"], y=df["ask_price_1"]))
+    df['MA'] = SMA(df)
+    df['SD'] = BolBand(df)
+    df['BOLU'] = df['MA'] + 3 * BolBand(df)
+    df['BOLD'] = df['MA'] - 3 * BolBand(df)
+
+    for i in range(len(df.index)):
+        if (df.iloc[i]['mid_price'] > df.iloc[i]['BOLU']) and (df.iloc[i]['mid_price'] - df.iloc[i-1]['mid_price'] > 1):
+            print(f"{df.iloc[i]['timestamp']}, {(df.iloc[i]['mid_price'] - df.iloc[i]['MA'])/df.iloc[i]['SD']} std")
+        elif (df.iloc[i]['mid_price'] < df.iloc[i]['BOLD']) and (df.iloc[i-1]['mid_price'] - df.iloc[i]['mid_price'] > 1):
+            print(f"{df.iloc[i]['timestamp']}, {(df.iloc[i]['mid_price'] - df.iloc[i]['MA'])/df.iloc[i]['SD']} std")
+    df = df.dropna()
+
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(name='mid_price', x=df['timestamp'], y=df['mid_price']))
+    # fig.add_trace(go.Scatter(name='MA', x=df['timestamp'], y=df['MA']))
+    fig.add_trace(go.Scatter(name='BOLD', x=df['timestamp'], y=df['BOLD']))
+    fig.add_trace(go.Scatter(name='BOLU', x=df['timestamp'], y=df['BOLU']))
+    fig.show()
+
+    # Superimposed both diving gear and dolphin sightings on each other
+
+    # df['mid_price'] = df['mid_price'].map(rescale)
+    #
+    # fig = px.line(df, x='timestamp', y='mid_price', color='product', line_group='product', hover_name='product')
+    #
     # fig.show()
 
-    fig = px.line(df, x='timestamp', y='mid_price', color='product', line_group='product', hover_name='product')
 
-    fig.show()
-#
 #
 main()
