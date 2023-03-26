@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 from datamodel import *
-from naive import Trader
+from bband import Trader
 
 
 def simulate(round: int, day: int, trader):
@@ -32,7 +32,10 @@ def simulate(round: int, day: int, trader):
         for i in range(1, 4):
             if row[f"bid_price_{i}"] > 0: depth[product].buy_orders[row[f"bid_price_{i}"]] = row[f"bid_volume_{i}"]
             if row[f"ask_price_{i}"] > 0: depth[product].sell_orders[row[f"ask_price_{i}"]] = row[f"ask_volume_{i}"]
-
+        print("pog")
+        if product == 'DOLPHIN_SIGHTINGS':
+            print(f"DOLPHIN SIGHTING COUNT: {row['mid_price']}")
+            observations['DOLPHIN SIGHTINGS'] = row['mid_price']
         # process trades that happened at this time
         trades = df_trades[df_trades['timestamp'] == time]
         for _, trade in trades.iterrows():

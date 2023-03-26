@@ -29,8 +29,8 @@ class Trader:
     def __init__(self) -> None:
         self.sightings = []
 
-    def update(self, price):
-        self.sightings.append(price)
+    def update(self, count):
+        self.sightings.append(count)
         if len(self.sightings) > 15:
             self.sightings.pop(0)
 
@@ -51,10 +51,6 @@ class Trader:
                 order_depth: OrderDepth = state.order_depths[product]
 
                 orders: list[Order] = []
-
-                best_ask = min(order_depth.sell_orders.keys())
-                best_bid = max(order_depth.buy_orders.keys())
-                mid_price = (best_ask + best_bid) / 2
 
                 sight_number = state.observations['DOLPHIN_SIGHTINGS']
 
@@ -87,10 +83,10 @@ class Trader:
                     bid_price = mid_price
 
                 if zscore > 3 and (self.sightings[-1] - self.sightings[-2] > 1):
-                    orders.append(Order(product, bid_price, can_buy))  # buy everything
+                    orders.append(Order(product, bid_price, can_buy)) # buy everything
                     print(f"Buying {can_buy} units at ${bid_price}")
                 elif zscore < -3 and (self.sightings[-2] - self.sightings[-1] > 1):
-                    orders.append(Order(product, sell_price, -can_sell))  # short everything
+                    orders.append(Order(product, sell_price, -can_sell)) #short everything
                     print(f"Selling {can_sell} units at ${sell_price}")
                 results[product] = orders
 
