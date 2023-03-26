@@ -145,11 +145,11 @@ class Trader:
                         self.enter_time = 0
                         self.position = 0
             
-                if zscore > 3 and (self.sightings[-1] - self.sightings[-2] > 1):
+                if zscore > 3.2 and (self.sightings[-1] - self.sightings[-2] > 1):
                     orders.append(Order(product, best_ask, can_buy)) # buy everything
                     self.enter_time = state.timestamp
                     self.position = 1
-                elif zscore < -3 and (self.sightings[-2] - self.sightings[-1] > 1):           
+                elif zscore < -3.2 and (self.sightings[-2] - self.sightings[-1] > 1):           
                     orders.append(Order(product, best_bid, -can_sell)) #short everything
                     self.enter_time = state.timestamp
                     self.position = -1
