@@ -65,7 +65,7 @@ class Trader:
         for product in state.order_depths.keys():
             if state.timestamp < 2600:
                 break
-            if product == 'COCONUTS':
+            if product == 'DIVING_GEAR':
 
                 orders: list[Order] = []
 
@@ -82,7 +82,7 @@ class Trader:
 
                 print(self.signal)
 
-                position_limit = 600
+                position_limit = 50
 
                 if product in state.position.keys():
                     current_position = state.position[product]
@@ -100,10 +100,10 @@ class Trader:
                     self.signal = 0
 
 
-                if self.signal > 5: #buy at mid_price + 1, slightly more expensive, so order fills
-                    orders.append(Order(product, mid_price + 1, max_buy)) 
-                elif self.signal < 5: #sell at mid_price -1
-                    orders.append(Order(product, mid_price - 1, -max_sell))
+                if self.signal > 20: #buy at mid_price + 1, slightly more expensive, so order fills
+                    orders.append(Order(product, best_ask, max_buy)) 
+                elif self.signal < -20: #sell at mid_price -1
+                    orders.append(Order(product, best_bid, -max_sell))
                     
                 
                 results[product] = orders

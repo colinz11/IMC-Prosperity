@@ -5,23 +5,6 @@ import statistics as s
 import math
 from collections import deque
 
-class Logger:
-    def __init__(self) -> None:
-        self.logs = ""
-
-    def print(self, *objects: Any, sep: str = " ", end: str = "\n") -> None:
-        self.logs += sep.join(map(str, objects)) + end
-
-    def flush(self, state: TradingState, orders: dict[Symbol, list[Order]]) -> None:
-        print(json.dumps({
-            "state": state,
-            "orders": orders,
-            "logs": self.logs,
-        }, cls=ProsperityEncoder, separators=(",", ":"), sort_keys=True))
-
-        self.logs = ""
-
-logger = Logger()
 
 class ExponentialMovingAverage:
         def __init__(self, size, smoothing=2):
@@ -92,26 +75,31 @@ class Trader:
                 max_buy = position_limit - current_position
                 max_sell = position_limit + current_position
 
-                if macd > signal_line:
+                #print(macd)
+                #print(signal_line)
+                #print(self.signal)
+
+
+                if macd > 0 and macd > signal_line:
                     self.signal = 1
-                elif macd < signal_line:
+                elif macd < 0 and macd < signal_line:
                     self.signal = -1
                 else:
                     self.signal = 0
-
+                #print(state)
                 num_dolphins = state.observations['DOLPHIN_SIGHTINGS']
-
-                dolphin_delta = num_dolphins - self.prev_dolphins
+                if self.prev_dolphins == 0:
+                    dolphin_delta = 0
+                else:
+                    dolphin_delta = num_dolphins - self.prev_dolphins
                 self.prev_dolphins = num_dolphins
 
-                if dolphin_delta > 1 and self.signal == 1: #buy
+                if dolphin_delta > 1: #buy
                     orders.append(Order(product, mid_price + 1, max_buy)) 
-                elif dolphin_delta < 1 and self.signal == -1: #sell
+                elif dolphin_delta < 1: #sell
                     orders.append(Order(product, mid_price - 1, -max_sell))
-                elif self.signal == 1: #buy
-                    orders.append(Order(product, mid_price + 1, max_buy)) 
-                elif self.signal == -1: #sell
-                    orders.append(Order(product, mid_price - 1, -max_sell))
-                    
-        logger.flush(state, results)
+            
+                results[product] = orders
+                print(current_position)
+        #logger.flush(state, results)
         return results
