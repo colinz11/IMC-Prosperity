@@ -85,6 +85,75 @@ class Trader:
 
 
         for product in state.order_depths.keys():
+            if product == 'DIVING_GEAR':
+                order_depth: OrderDepth = state.order_depths[product]
+                orders: list[Order] = []
+
+                if 'DOLPHIN_SIGHTINGS' in state.observations:
+                    sight_number = state.observations['DOLPHIN_SIGHTINGS']
+                else:
+                    sight_number = 0
+
+                
+                self.update(sight_number)
+
+                if state.timestamp < 200:
+                    break
+
+                average = s.mean(self.sightings)
+                sd = s.stdev(self.sightings)
+              
+                if sd == 0:
+                    sd = 1
+                zscore = (sight_number - average)/sd
+
+                limit_position = 50
+
+                if product in state.position.keys():
+                    current_position = state.position[product]
+                else:
+                    current_position = 0
+
+                can_buy = limit_position - current_position
+                can_sell = limit_position - (-1 * current_position)
+
+                best_ask = min(order_depth.sell_orders.keys())
+                best_bid = max(order_depth.buy_orders.keys())
+                mid_price = (best_ask + best_bid) / 2
+                
+
+                ema_12 = self.ema12.next(mid_price)
+                ema_26 = self.ema26.next(mid_price)
+                macd = ema_12-ema_26
+                signal_line = self.ema9.next(macd)
+
+
+                if macd > 0 and macd > signal_line:
+                    self.signal += 1
+                elif macd < 0 and macd < signal_line:
+                    self.signal -= 1
+                else:
+                    self.signal = 0
+
+                if self.enter_time != 0 and state.timestamp > self.enter_time + 26000:
+                    if self.position == 1 and self.signal < -20:
+                        orders.append(Order(product, best_bid, -current_position)) #sell to 0
+                        self.enter_time = 0
+                        self.position = 0
+                    elif self.position == -1 and self.signal > 20:
+                        orders.append(Order(product, best_ask, -current_position)) # buy to 0
+                        self.enter_time = 0
+                        self.position = 0
+            
+                if zscore > 3.2 and (self.sightings[-1] - self.sightings[-2] > 1):
+                    orders.append(Order(product, best_ask, can_buy)) # buy everything
+                    self.enter_time = state.timestamp
+                    self.position = 1
+                elif zscore < -3.2 and (self.sightings[-2] - self.sightings[-1] > 1):           
+                    orders.append(Order(product, best_bid, -can_sell)) #short everything
+                    self.enter_time = state.timestamp
+                    self.position = -1
+                result[product] = orders    
 
             if product == 'BERRIES':
                 sell_timestamp = 350000
@@ -281,5 +350,5 @@ class Trader:
         result['COCONUTS'] = orders_coco
         result['PINA_COLADAS'] = orders_pc
 
-        #logger.flush(state, result)
+        logger.flush(state, result)
         return result
