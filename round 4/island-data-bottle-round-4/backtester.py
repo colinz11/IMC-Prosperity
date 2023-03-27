@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 from datamodel import *
-from algo_trading_day_4 import Trader
+from picnic import Trader
 
 
 def simulate(round: int, day: int, trader):
