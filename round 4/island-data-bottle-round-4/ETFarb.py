@@ -2,6 +2,7 @@ from datamodel import *
 import json
 from typing import Any
 import statistics as s
+import math
 from collections import deque
 
 
@@ -43,6 +44,8 @@ class Trader:
         orders_dip: list[Order] = []
         orders_ukulele: list[Order] = []
         orders_picnic_basket: list[Order] = []
+        batch_buy_size = 1000  # should be greater than any theoretical buy size
+        batch_sell_size = 1000  # should be greater than any theoretical sell size
 
         for product in state.order_depths.keys():
             if product == 'BAGUETTE':
@@ -56,8 +59,13 @@ class Trader:
                 else:
                     baguette_position = 0
 
-                baguette_buy = 150 - baguette_position
-                baguette_sell = 150 - (-1 * baguette_position)
+                max_baguette_buy = 150 - baguette_position
+                max_baguette_sell = 150 - (-1 * baguette_position)
+
+                if math.floor(max_baguette_buy / 2) < batch_buy_size:
+                    batch_buy_size = math.floor(max_baguette_buy / 2)
+                if math.floor(max_baguette_sell / 2) < batch_sell_size:
+                    batch_sell_size = math.floor(max_baguette_sell / 2)
 
             if product == 'DIP':
                 dip_order_depth: OrderDepth = state.order_depths[product]
@@ -70,8 +78,13 @@ class Trader:
                 else:
                     dip_position = 0
 
-                dip_buy = 300 - dip_position
-                dip_sell = 300 - (-1 * dip_position)
+                max_dip_buy = 300 - dip_position
+                max_dip_sell = 300 - (-1 * dip_position)
+
+                if math.floor(max_dip_buy / 4) < batch_buy_size:
+                    batch_buy_size = math.floor(max_dip_buy / 4)
+                if math.floor(max_dip_sell / 4) < batch_sell_size:
+                    batch_sell_size = math.floor(max_dip_sell / 4)
 
             if product == 'UKULELE':
                 ukulele_order_depth: OrderDepth = state.order_depths[product]
@@ -84,8 +97,13 @@ class Trader:
                 else:
                     ukulele_position = 0
 
-                ukulele_buy = 70 - ukulele_position
-                ukulele_sell = 70 - (-1 * ukulele_position)
+                max_ukulele_buy = 70 - ukulele_position
+                max_ukulele_sell = 70 - (-1 * ukulele_position)
+
+                if max_ukulele_buy < batch_buy_size:
+                    batch_buy_size = max_ukulele_buy
+                if max_ukulele_sell < batch_sell_size:
+                    batch_sell_size = max_ukulele_sell
 
             if product == 'PICNIC_BASKET':
                 picnic_basket_order_depth: OrderDepth = state.order_depths[product]
@@ -98,32 +116,38 @@ class Trader:
                 else:
                     picnic_basket_position = 0
 
-                picnic_basket_buy = 70 - picnic_basket_position
-                picnic_basket_sell = 70 - (-1 * picnic_basket_position)
+                max_picnic_basket_buy = 70 - picnic_basket_position
+                max_picnic_basket_sell = 70 - (-1 * picnic_basket_position)
+
+                if max_picnic_basket_buy < batch_buy_size:
+                    batch_buy_size = max_picnic_basket_buy
+                if max_picnic_basket_sell < batch_sell_size:
+                    batch_sell_size = max_picnic_basket_sell
 
         ratio = picnic_basket_mid_price / (2 * baguette_mid_price + 4 * dip_mid_price + ukulele_mid_price)
         self.ratios.append(ratio)
 
         zscores = self.zscore(self.ratios)
 
-        if zscores < -1:  # sell short first
-            orders_baguette.append(Order('BAGUETTE', baguette_mid_price - 0.5, -baguette_sell))
-            orders_dip.append(Order('DIP', dip_mid_price - 0.5, -dip_sell))
-            orders_ukulele.append(Order('UKULELE', ukulele_mid_price - 0.5, -ukulele_sell))
-            orders_picnic_basket.append(Order('PICNIC_BASKET', picnic_basket_mid_price + 0.5, picnic_basket_buy))
-        elif zscores > 1:  # buy long
-            orders_baguette.append(Order('BAGUETTE', baguette_mid_price + 0.5, baguette_buy))
-            orders_dip.append(Order('DIP', dip_mid_price + 0.5, dip_buy))
-            orders_ukulele.append(Order('UKULELE', ukulele_mid_price + 0.5, ukulele_buy))
-            orders_picnic_basket.append(Order('PICNIC_BASKET', picnic_basket_mid_price - 0.5, -picnic_basket_sell))
-        # elif abs(zscores) < 0.75: #clear position
-        #     if baguette_position > 0:
+        batch_size = min(batch_sell_size, batch_buy_size)
 
-        #     elif baguette_position < 0:
+        if zscores < -1:  # sell short first
+            orders_baguette.append(Order('BAGUETTE', baguette_mid_price - 0.5,  2 * -batch_size))
+            orders_dip.append(Order('DIP', dip_mid_price - 0.5, 4 * -batch_size))
+            orders_ukulele.append(Order('UKULELE', ukulele_mid_price - 0.5, -batch_size))
+            orders_picnic_basket.append(Order('PICNIC_BASKET', picnic_basket_mid_price + 0.5, batch_size))
+        elif zscores > 1:  # buy long
+            orders_baguette.append(Order('BAGUETTE', baguette_mid_price + 0.5, 2 * batch_size))
+            orders_dip.append(Order('DIP', dip_mid_price + 0.5, 4 * batch_size))
+            orders_ukulele.append(Order('UKULELE', ukulele_mid_price + 0.5, batch_size))
+            orders_picnic_basket.append(Order('PICNIC_BASKET', picnic_basket_mid_price - 0.5, -batch_size))
 
         result['BAGUETTE'] = orders_baguette
         result['DIP'] = orders_dip
         result['UKULELE'] = orders_ukulele
         result['PICNIC_BASKET'] = orders_picnic_basket
 
+        return result
+
+        logger.flush(state, result)
         return result

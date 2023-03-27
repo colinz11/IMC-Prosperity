@@ -80,7 +80,7 @@ def simulate(round: int, day: int, trader):
             state.order_depths[product] = depth[product]
 
         for product in position:
-            if abs(position[product]) > 600:
+            if abs(position[product]) > 300:
                 print(f"Position limit for {product} violated - {position[product]}")
                 raise RuntimeError()
         pnl = cash + sum(
