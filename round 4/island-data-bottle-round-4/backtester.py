@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 from datamodel import *
-from picnic import Trader
+from ETFarb import Trader
 
 
 def simulate(round: int, day: int, trader):
@@ -80,7 +80,16 @@ def simulate(round: int, day: int, trader):
             state.order_depths[product] = depth[product]
 
         for product in position:
-            if abs(position[product]) > 300:
+            if product == 'PICNIC_BASKET' and abs(position[product]) > 70:
+                print(f"Position limit for {product} violated - {position[product]}")
+                raise RuntimeError()
+            if product == 'DIP' and abs(position[product]) > 300:
+                print(f"Position limit for {product} violated - {position[product]}")
+                raise RuntimeError()
+            if product == 'UKULELE' and abs(position[product]) > 70:
+                print(f"Position limit for {product} violated - {position[product]}")
+                raise RuntimeError()
+            if product == 'BAGUETTE' and abs(position[product]) > 150:
                 print(f"Position limit for {product} violated - {position[product]}")
                 raise RuntimeError()
         pnl = cash + sum(
