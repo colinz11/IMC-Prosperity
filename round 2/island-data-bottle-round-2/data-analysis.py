@@ -44,7 +44,7 @@ def get_average(b1, b2, b3):
 
 
 def main():
-    fileName = "prices_round_2_day_0.csv"
+    fileName = "../../round 4/island-data-bottle-round-4/prices_round_2_day_0.csv"
     # product = "COCONUTS"
 
     df_coco = read_market_data(fileName)
