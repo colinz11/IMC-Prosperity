@@ -4,6 +4,7 @@ from collections import deque
 import pandas as pd
 import statsmodels.api as stat
 import statsmodels.tsa.stattools as ts
+import statistics as s
 import matplotlib.pyplot as plt
 from statsmodels.graphics.regressionplots import abline_plot
 import seaborn as sns
@@ -32,6 +33,12 @@ def stationarity_test(X, cutoff=0.05):
         print('p-value = ' + str(pvalue) + ' The series ' + X.name +' is likely non-stationary.')
 
 
+def split_by_product(df, product):
+        df = df.groupby('product').get_group(product)
+        df = df.reset_index()
+        return df
+
+
 def get_average(b1, b2, b3):
     a1 = 1
     a2 = 1
@@ -47,19 +54,45 @@ def get_average(b1, b2, b3):
 
 
 def main():
-    fileName = "prices_round_4_day_1.csv"
+    fileName = "prices_round_2_day_-1.csv"
 
     df = read_market_data(fileName)
     df.drop(df.loc[df['product'] == "BANANAS"].index, inplace=True)
     df.drop(df.loc[df['product'] == "PEARLS"].index, inplace=True)
-    df.drop(df.loc[df['product'] == "COCONUTS"].index, inplace=True)
-    df.drop(df.loc[df['product'] == "PINA_COLADAS"].index, inplace=True)
+    # df.drop(df.loc[df['product'] == "COCONUTS"].index, inplace=True)
+    # df.drop(df.loc[df['product'] == "PINA_COLADAS"].index, inplace=True)
     df.drop(df.loc[df['product'] == "BERRIES"].index, inplace=True)
     df.drop(df.loc[df['product'] == "DIVING_GEAR"].index, inplace=True)
     df.drop(df.loc[df['product'] == "DOLPHIN_SIGHTINGS"].index, inplace=True)
+    df.drop(df.loc[df['product'] == "PICNIC_BASKETS"].index, inplace=True)
+    df.drop(df.loc[df['product'] == "DIP"].index, inplace=True)
+    df.drop(df.loc[df['product'] == "BAGUETTE"].index, inplace=True)
+    df.drop(df.loc[df['product'] == "UKULELES"].index, inplace=True)
+
+    coco_df = split_by_product(df, 'COCONUTS')
+
+    pc_df = split_by_product(df, 'PINA_COLADAS')
+
+    df2 = pd.DataFrame()
+
+    df2['coco_price'] = coco_df['mid_price']
+    df2['pc_price'] = pc_df['mid_price']
+
+    coco_price = list(df2['coco_price'])
+    pc_price = list(df2['pc_price'])
+
+    length = len(df2)
+
+    ratios = [coco_price[i]/pc_price[i] for i in range(length)]
+    mean = s.mean(ratios)
+    std = s.stdev(ratios)
+
+    zscores = [(ratios[i] - mean) / std for i in range(length)]
+
+    print(f"Mean: {mean}")
+    print(f"Stdev: {std}")
 
 
-    print(df)
     # df_ds.drop(df_ds.loc[df_ds['product'] != "DOLPHIN_SIGHTINGS"].index, inplace=True)
     #
     # df_dg = df_dg.replace('', 0)

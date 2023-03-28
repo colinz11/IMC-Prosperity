@@ -57,13 +57,13 @@ class Trader:
                 baguette_mid_price = (
                     baguette_best_ask + baguette_best_bid) / 2
 
-                # if product in state.position.keys():
-                #     baguette_position = state.position[product]
-                # else:
-                #     baguette_position = 0
+                if product in state.position.keys():
+                    baguette_position = state.position[product]
+                else:
+                    baguette_position = 0
 
-                # baguette_buy = 140 - baguette_position
-                # baguette_sell = 140 - (-1 * baguette_position)
+                baguette_buy = 140 - baguette_position
+                baguette_sell = 140 - (-1 * baguette_position)
 
             if product == 'DIP':
                 dip_order_depth: OrderDepth = state.order_depths[product]
@@ -73,13 +73,13 @@ class Trader:
                 # dip_worst_bid = min(dip_order_depth.buy_orders.keys())
                 dip_mid_price = (dip_best_ask + dip_best_bid) / 2
 
-                # if product in state.position.keys():
-                #     dip_position = state.position[product]
-                # else:
-                #     dip_position = 0
+                if product in state.position.keys():
+                    dip_position = state.position[product]
+                else:
+                    dip_position = 0
 
-                # dip_buy = 280 - dip_position
-                # dip_sell = 280 - (-1 * dip_position)
+                dip_buy = 280 - dip_position
+                dip_sell = 280 - (-1 * dip_position)
 
             if product == 'UKULELE':
                 ukulele_order_depth: OrderDepth = state.order_depths[product]
@@ -89,13 +89,13 @@ class Trader:
                 # ukelele_worst_bid = min(ukulele_order_depth.buy_orders.keys())
                 ukulele_mid_price = (ukulele_best_ask + ukulele_best_bid) / 2
 
-                # if product in state.position.keys():
-                #     ukulele_position = state.position[product]
-                # else:
-                #     ukulele_position = 0
+                if product in state.position.keys():
+                    ukulele_position = state.position[product]
+                else:
+                    ukulele_position = 0
 
-                # ukulele_buy = 70 - ukulele_position
-                # ukulele_sell = 70 - (-1 * ukulele_position)
+                ukulele_buy = 70 - ukulele_position
+                ukulele_sell = 70 - (-1 * ukulele_position)
 
             if product == 'PICNIC_BASKET':
                 picnic_basket_order_depth: OrderDepth = state.order_depths[product]
@@ -120,43 +120,49 @@ class Trader:
 
         ratio = picnic_basket_mid_price / \
             (2 * baguette_mid_price + 4*dip_mid_price + ukulele_mid_price)
-        
+
         self.ratios.append(ratio)
 
         zscores = self.zscore(self.ratios)
 
         if zscores < -1:  # sell short first
-            # orders_baguette.append(Order('BAGUETTE', baguette_mid_price - 0.5, -baguette_sell))
-            # orders_dip.append(Order('DIP', dip_mid_price-0.5, -dip_sell))
-            # orders_ukulele.append(Order('UKULELE', ukulele_mid_price-0.5, -ukulele_sell))
+            orders_baguette.append(
+                Order('BAGUETTE', baguette_mid_price + 0.5, baguette_buy))
+            orders_dip.append(Order('DIP', dip_mid_price+0.5, dip_buy))
+            orders_ukulele.append(
+                Order('UKULELE', ukulele_mid_price+0.5, ukulele_buy))
             orders_picnic_basket.append(
                 Order('PICNIC_BASKET', picnic_basket_mid_price + 0.5, picnic_basket_buy))
         elif zscores > 1:  # buy long
-            # orders_baguette.append(Order('BAGUETTE', baguette_mid_price + 0.5, baguette_buy))
-            # orders_dip.append(Order('DIP', dip_mid_price+0.5, dip_buy))
-            # orders_ukulele.append(Order('UKULELE', ukulele_mid_price+0.5, ukulele_buy))
+            orders_baguette.append(
+                Order('BAGUETTE', baguette_mid_price - 0.5, -baguette_sell))
+            orders_dip.append(Order('DIP', dip_mid_price-0.5, -dip_sell))
+            orders_ukulele.append(
+                Order('UKULELE', ukulele_mid_price-0.5, -ukulele_sell))
             orders_picnic_basket.append(
                 Order('PICNIC_BASKET', picnic_basket_mid_price - 0.5, -picnic_basket_sell))
-        # elif abs(zscores) < 0.2: #clear position
-        #     if baguette_position > 0:
-        #         orders_baguette.append(Order('BAGUETTE', baguette_mid_price-0.5, -baguette_position))
-        #     elif baguette_position < 0:
-        #         orders_baguette.append(Order('BAGUETTE', baguette_mid_price+0.5, -baguette_position))
+        # elif abs(zscores) < 0.75:  # clear position
+        #     #     if baguette_position > 0:
+        #     #         orders_baguette.append(Order('BAGUETTE', baguette_mid_price-0.5, -baguette_position))
+        #     #     elif baguette_position < 0:
+        #     #         orders_baguette.append(Order('BAGUETTE', baguette_mid_price+0.5, -baguette_position))
 
-        #     if dip_position > 0:
-        #         orders_dip.append(Order('DIP', dip_mid_price-0.5, -dip_position))
-        #     elif dip_position < 0:
-        #         orders_dip.append(Order('DIP', dip_mid_price+0.5, -dip_position))
+        #     #     if dip_position > 0:
+        #     #         orders_dip.append(Order('DIP', dip_mid_price-0.5, -dip_position))
+        #     #     elif dip_position < 0:
+        #     #         orders_dip.append(Order('DIP', dip_mid_price+0.5, -dip_position))
 
-        #     if ukulele_position > 0:
-        #         orders_ukulele.append(Order('UKULELE', ukulele_mid_price-0.5, -ukulele_position))
-        #     elif ukulele_position < 0:
-        #         orders_ukulele.append(Order('UKULELE', ukulele_mid_price+0.5, -ukulele_position))
+        #     #     if ukulele_position > 0:
+        #     #         orders_ukulele.append(Order('UKULELE', ukulele_mid_price-0.5, -ukulele_position))
+        #     #     elif ukulele_position < 0:
+        #     #         orders_ukulele.append(Order('UKULELE', ukulele_mid_price+0.5, -ukulele_position))
 
         #     if picnic_basket_position > 0:
-        #         orders_picnic_basket.append(Order('PICNIC_BASKET', picnic_basket_mid_price -0.5, -picnic_basket_position))
+        #         orders_picnic_basket.append(
+        #             Order('PICNIC_BASKET', picnic_basket_mid_price - 0.5, -picnic_basket_position))
         #     elif picnic_basket_position < 0:
-        #         orders_picnic_basket.append(Order('PICNIC_BASKET', picnic_basket_mid_price+0.5, -picnic_basket_position))
+        #         orders_picnic_basket.append(
+        #             Order('PICNIC_BASKET', picnic_basket_mid_price+0.5, -picnic_basket_position))
         # print("AFTER")
         # print(state.position)
 
@@ -165,6 +171,6 @@ class Trader:
         result['UKULELE'] = orders_ukulele
         result['PICNIC_BASKET'] = orders_picnic_basket
 
-        logger.flush(state, result)
+        # logger.flush(state, result)
 
         return result
