@@ -93,4 +93,4 @@ def simulate(round: int, day: int, trader):
 
 
 if __name__ == '__main__':
-    simulate(4, 3, Trader())
+    simulate(4, 1, Trader())
