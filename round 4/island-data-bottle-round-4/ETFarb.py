@@ -143,7 +143,8 @@ class Trader:
         print(f"Timestamp: {state.timestamp}")
         print(f"Baguette position: {baguette_position}, dip position: {dip_position}, ukulele position: {ukulele_position},"
               f"picnic basket position {picnic_basket_position}")
-        print(f"Baguette price: {baguette_mid_price}, dip price: {dip_mid_price}, ukulele price: {ukulele_mid_price}, picnic price: {picnic_basket_mid_price}")
+        print(f"Baguette price: {baguette_mid_price}, dip price: {dip_mid_price}, ukulele price: {ukulele_mid_price}, "
+              f"picnic price: {picnic_basket_mid_price}")
 
         if zscores < -1:  # sell short first
             orders_baguette.append(Order('BAGUETTE', baguette_mid_price - 0.5,  -baguette_sell))

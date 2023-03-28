@@ -23,7 +23,7 @@ def split_data_by_product(df):
 
 
 def main():
-    fileName = "prices_round_2_day_-1.csv"
+    fileName = "../../round 4/island-data-bottle-round-4/prices_round_2_day_-1.csv"
     product = "PINA_COLADAS"
 
     df_both = read_market_data(fileName)
