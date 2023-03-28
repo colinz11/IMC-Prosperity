@@ -27,22 +27,22 @@ class Trader:
 
     def __init__(self) -> None:
         self.ratios = []
-        self.coco_mid_prices = []
-        self.pc_mid_prices = []
    
 
-    def zscore(self, series, window):
-        if len(series) < window:
-            return (series[-1] - s.mean(series)) / s.stdev(series)
-
-        return (series[-1] - s.mean(series[-window:])) / s.stdev(series[-window:])
+    def zscore(self, series):
+        
+        mean = s.mean(series)
+        std = s.stdev(series)
+        return (series[-1] - mean) / std
 
     def run(self, state: TradingState) -> Dict[str, List[Order]]:
 
         result = {}
         orders_coco: list[Order] = []    
         orders_pc: list[Order] = []  
-        # Iterate over all the keys (the available products) contained in the order depths
+
+
+        
         for product in state.order_depths.keys():
             
             if product == 'COCONUTS':
@@ -73,32 +73,45 @@ class Trader:
                 pc_buy = 300 - pc_position
                 pc_sell = 300 - (-1 * pc_position)
 
-        spread = math.log(pc_mid_price) - 2 * math.log(coco_mid_price)
-        self.spreads.append(spread)
+        self.ratios.append(coco_mid_price/pc_mid_price)        
         
+        if state.timestamp < 1000:
+            return result
 
-        zscores = self.zscore(self.ratios)
+
+        signal = self.zscore(self.ratios)
         #print(zscores)
-      
+
+        if int(coco_mid_price) == coco_mid_price:
+            coco_sell_price = coco_mid_price - 1
+            coco_buy_price = coco_mid_price + 1
+        else:
+            coco_sell_price = math.floor(coco_mid_price)
+            coco_sell_price = math.ceil(coco_mid_price)
+        
+        if int(pc_mid_price) == pc_mid_price:
+            pc_sell_price = pc_mid_price - 1
+            pc_buy_price = pc_mid_price + 1
+        else:
+            pc_sell_price = math.floor(pc_mid_price)
+            pc_buy_price = math.ceil(pc_mid_price)
         
 
-        if zscores > 0.95: #short first
-            orders_coco.append(Order('COCONUTS', coco_mid_price - 1, -coco_sell))
-            orders_pc.append(Order('PINA_COLADAS', pc_mid_price + 1, pc_buy))
-        elif zscores < -0.95: #long first
-            orders_coco.append(Order('COCONUTS', coco_mid_price + 1, coco_buy))
-            orders_pc.append(Order('PINA_COLADAS', pc_mid_price - 1, -pc_sell))
-   
-
-        
-        self.coco_mid_prices.append(coco_mid_price)
-        self.pc_mid_prices.append(pc_mid_price)
-
-        if state.timestamp is 99900:
-            print("coco_prices")
-            print(self.coco_mid_prices)
-            print("pc_prices")
-            print(self.pc_mid_prices)
+        if signal > 1.5: #short first
+            orders_coco.append(Order('COCONUTS', coco_sell_price, -coco_sell))
+            orders_pc.append(Order('PINA_COLADAS', pc_buy_price, pc_buy))
+        elif signal < -1.5: #long first
+            orders_coco.append(Order('COCONUTS', coco_buy_price, coco_buy))
+            orders_pc.append(Order('PINA_COLADAS', pc_sell_price, -pc_sell))
+        elif -0.5 < signal < 0.5: #close
+            if pc_position > 0:
+                orders_pc.append(Order('PINA_COLADAS', pc_sell_price, -pc_position))
+            elif pc_position < 0:
+                orders_pc.append(Order('PINA_COLADAS', pc_buy_price, pc_position))
+            if coco_position > 0:
+                orders_coco.append(Order('COCONUTS', coco_sell_price, -coco_position))
+            elif coco_position < 0:
+                orders_coco.append(Order('COCONUTS', coco_buy_price, coco_position))
             
         result['COCONUTS'] = orders_coco
         result['PINA_COLADAS'] = orders_pc
