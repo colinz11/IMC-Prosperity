@@ -67,4 +67,16 @@ class TradingState(object):
     
 class ProsperityEncoder(JSONEncoder):
         def default(self, o):
+<<<<<<< HEAD
             return o.__dict__
+=======
+            return o.__dict__
+
+
+class OwnTrade:
+    def __init__(self, symbol: Symbol, price: int, quantity: int, counter_party: UserId = None) -> None:
+        self.symbol = symbol
+        self.price: int = price
+        self.quantity: int = quantity
+        self.counter_party = counter_party
+>>>>>>> d28329a03a0c231514664bd60705f54626d61058
