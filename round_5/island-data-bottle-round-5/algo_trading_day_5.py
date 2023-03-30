@@ -6,24 +6,24 @@ from collections import deque
 import math
 
 
-class Logger:
-    def __init__(self) -> None:
-        self.logs = ""
-
-    def print(self, *objects: Any, sep: str = " ", end: str = "\n") -> None:
-        self.logs += sep.join(map(str, objects)) + end
-
-    def flush(self, state: TradingState, orders: dict[Symbol, list[Order]]) -> None:
-        print(json.dumps({
-            "state": state,
-            "orders": orders,
-            "logs": self.logs,
-        }, cls=ProsperityEncoder, separators=(",", ":"), sort_keys=True))
-
-        self.logs = ""
-
-
-logger = Logger()
+# class Logger:
+#     def __init__(self) -> None:
+#         self.logs = ""
+#
+#     def print(self, *objects: Any, sep: str = " ", end: str = "\n") -> None:
+#         self.logs += sep.join(map(str, objects)) + end
+#
+#     def flush(self, state: TradingState, orders: dict[Symbol, list[Order]]) -> None:
+#         print(json.dumps({
+#             "state": state,
+#             "orders": orders,
+#             "logs": self.logs,
+#         }, cls=ProsperityEncoder, separators=(",", ":"), sort_keys=True))
+#
+#         self.logs = ""
+#
+#
+# logger = Logger()
 
 
 class ExponentialMovingAverage:
@@ -172,66 +172,80 @@ class Trader:
                     self.position = -1
                 result[product] = orders
 
-            if product == 'BERRIES':
+            if product == "BERRIES":
                 sell_timestamp = 350000
                 buy_timestamp = 500000
                 close = 700000
                 order_depth: OrderDepth = state.order_depths[product]
-                orders: list[Order] = []
 
                 if product in state.position.keys():
                     current_position = state.position[product]
                 else:
                     current_position = 0
 
-                can_buy = 250 - current_position
-                can_sell = 250 - (-1 * current_position)
+                berries_buy = 250 - current_position
+                berries_sell = 250 - (-1 * current_position)
 
                 best_ask = min(order_depth.sell_orders.keys())
                 best_bid = max(order_depth.buy_orders.keys())
-                mid_price = (best_ask + best_bid) / 2
+                berries_mid_price = (best_ask + best_bid) / 2
 
                 sell_price = best_ask - 1
                 bid_price = best_bid + 1
 
                 if sell_price < bid_price:
-                    sell_price = mid_price
-                    bid_price = mid_price
+                    sell_price = berries_mid_price
+                    bid_price = berries_mid_price
 
-                if state.timestamp >= sell_timestamp and state.timestamp < buy_timestamp:  # buy
-                    orders.append(Order(product, best_ask, can_buy))
-                elif state.timestamp >= buy_timestamp and state.timestamp < close:  # sell
-                    orders.append(Order(product, best_bid, -can_sell))
-                elif state.timestamp == close:  # buy
-                    orders.append(Order(product, best_ask, current_position))
-                else:  # market make
-                    orders.append(Order(product, sell_price, -can_sell))
-                    orders.append(Order(product, bid_price, can_buy))
-                result[product] = orders
+                if "BERRIES" in state.market_trades:
+                    for trade in state.market_trades["BERRIES"]:
+                        if trade.timestamp == state.timestamp - 100:
+                            if trade.buyer == "Olivia":
+                                self.keep_buying_berries = True
+                                self.keep_selling_berries = False
+                            if trade.seller == "Olivia":
+                                self.keep_selling_berries = True
+                                self.keep_buying_berries = False
+
+                if self.keep_buying_berries is False and self.keep_selling_berries is False:
+                    if state.timestamp >= sell_timestamp and state.timestamp < buy_timestamp:  # buy
+                        orders_berries.append(
+                            Order(product, best_ask, berries_buy))
+                    elif state.timestamp >= buy_timestamp and state.timestamp < close:  # sell
+                        orders_berries.append(
+                            Order(product, best_bid, -berries_sell))
+                    elif state.timestamp == close:  # buy
+                        orders_berries.append(
+                            Order(product, best_ask, current_position))
+                    else:  # market make
+                        orders_berries.append(
+                            Order(product, sell_price, -berries_sell))
+                        orders_berries.append(
+                            Order(product, bid_price, berries_buy))
 
             if product == 'BANANAS':
                 sell_changed = False
                 buy_changed = False
                 order_depth: OrderDepth = state.order_depths[product]
                 orders: list[Order] = []
-            
+
                 if product in state.position.keys():
                     current_position = state.position[product]
                 else:
                     current_position = 0
-            
+
                 can_buy = 20 - current_position
                 can_sell = 20 - (-1 * current_position)
-            
+
                 worst_ask = max(order_depth.sell_orders.keys())
                 worst_bid = min(order_depth.buy_orders.keys())
                 best_ask = min(order_depth.sell_orders.keys())
                 best_bid = max(order_depth.buy_orders.keys())
                 mid_price = (best_ask + best_bid) / 2
-            
+
                 sell_price = worst_ask - 1 - (current_position / 20)
                 bid_price = worst_bid + 1 - (current_position / 20)
-            
+
                 if "BANANAS" in state.market_trades:
                     for trade in state.market_trades["BANANAS"]:
                         if trade.timestamp == state.timestamp - 100:
@@ -241,19 +255,19 @@ class Trader:
                             if trade.buyer == "Olivia":
                                 bid_price = trade.price
                                 buy_changed = True
-            
+
                 if not (sell_changed or buy_changed):
                     if sell_price < bid_price:
                         sell_price = mid_price
                         bid_price = mid_price
-            
+
                 if not buy_changed:
                     orders.append(Order(product, sell_price, -can_sell))
                 if not sell_changed:
                     orders.append(Order(product, bid_price, can_buy))
-            
+
                 result[product] = orders
-            
+
             if product == 'PEARLS':
 
                 # Retrieve the Order Depth containing all the market BUY and SELL orders for PEARLS
@@ -388,7 +402,7 @@ class Trader:
 
                 baguette_buy = 140 - baguette_position
                 baguette_sell = 140 - (-1 * baguette_position)
-        #
+
             if product == 'DIP':
                 self.dip_seen = True
                 dip_order_depth: OrderDepth = state.order_depths[product]
@@ -540,5 +554,5 @@ class Trader:
 
             result['PICNIC_BASKET'] = orders_picnic_basket
 
-        logger.flush(state, result)
+        # logger.flush(state, result)
         return result
