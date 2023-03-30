@@ -500,59 +500,58 @@ class Trader:
         if self.coco_seen and self.pina_seen:
             self.ratios.append(coco_mid_price / pc_mid_price)
 
-            if state.timestamp < 10000:
-                return result
+            if state.timestamp > 10000:
 
-            signal = self.zscore(self.ratios)
+                signal = self.zscore(self.ratios)
 
-            if int(coco_mid_price) == coco_mid_price:
-                coco_sell_price = coco_mid_price - 1
-                coco_buy_price = coco_mid_price + 1
-            else:
-                coco_sell_price = math.floor(coco_mid_price)
-                coco_buy_price = math.ceil(coco_mid_price)
+                if int(coco_mid_price) == coco_mid_price:
+                    coco_sell_price = coco_mid_price - 1
+                    coco_buy_price = coco_mid_price + 1
+                else:
+                    coco_sell_price = math.floor(coco_mid_price)
+                    coco_buy_price = math.ceil(coco_mid_price)
 
-            if int(pc_mid_price) == pc_mid_price:
-                pc_sell_price = pc_mid_price - 1
-                pc_buy_price = pc_mid_price + 1
-            else:
-                pc_sell_price = math.floor(pc_mid_price)
-                pc_buy_price = math.ceil(pc_mid_price)
+                if int(pc_mid_price) == pc_mid_price:
+                    pc_sell_price = pc_mid_price - 1
+                    pc_buy_price = pc_mid_price + 1
+                else:
+                    pc_sell_price = math.floor(pc_mid_price)
+                    pc_buy_price = math.ceil(pc_mid_price)
 
-            if signal > 1.68:  # short first
-                orders_coco.append(Order('COCONUTS', coco_sell_price, -coco_sell))
-                orders_pc.append(Order('PINA_COLADAS', pc_buy_price, pc_buy))
-            elif signal < -1.68:  # long first
-                orders_coco.append(Order('COCONUTS', coco_buy_price, coco_buy))
-                orders_pc.append(Order('PINA_COLADAS', pc_sell_price, -pc_sell))
-            elif -0.25 < signal < 0.25:  # close
-                if pc_position > 0:
-                    orders_pc.append(Order('PINA_COLADAS', pc_sell_price, -pc_position))
-                elif pc_position < 0:
-                    orders_pc.append(Order('PINA_COLADAS', pc_buy_price, pc_position))
-                if coco_position > 0:
-                    orders_coco.append(Order('COCONUTS', coco_sell_price, -coco_position))
-                elif coco_position < 0:
-                    orders_coco.append(Order('COCONUTS', coco_buy_price, coco_position))
+                if signal > 1.68:  # short first
+                    orders_coco.append(Order('COCONUTS', coco_sell_price, -coco_sell))
+                    orders_pc.append(Order('PINA_COLADAS', pc_buy_price, pc_buy))
+                elif signal < -1.68:  # long first
+                    orders_coco.append(Order('COCONUTS', coco_buy_price, coco_buy))
+                    orders_pc.append(Order('PINA_COLADAS', pc_sell_price, -pc_sell))
+                elif -0.25 < signal < 0.25:  # close
+                    if pc_position > 0:
+                        orders_pc.append(Order('PINA_COLADAS', pc_sell_price, -pc_position))
+                    elif pc_position < 0:
+                        orders_pc.append(Order('PINA_COLADAS', pc_buy_price, pc_position))
+                    if coco_position > 0:
+                        orders_coco.append(Order('COCONUTS', coco_sell_price, -coco_position))
+                    elif coco_position < 0:
+                        orders_coco.append(Order('COCONUTS', coco_buy_price, coco_position))
 
-            result['COCONUTS'] = orders_coco
-            result['PINA_COLADAS'] = orders_pc
+                result['COCONUTS'] = orders_coco
+                result['PINA_COLADAS'] = orders_pc
 
         if self.picnic_seen and self.dip_seen and self.uk_seen and self.bag_seen:
             picnic_ratio = picnic_basket_mid_price / \
                 (2 * baguette_mid_price + 4*dip_mid_price + ukulele_mid_price)
             self.ratios_picnic.append(picnic_ratio)
+            if state.timestamp > 10000:
+                zscores_picnic = self.zscore(self.ratios_picnic)
 
-            zscores_picnic = self.zscore(self.ratios_picnic)
+                if zscores_picnic < -1:  # sell short first
+                    orders_picnic_basket.append(
+                        Order('PICNIC_BASKET', picnic_basket_mid_price + 0.5, picnic_basket_buy))
+                elif zscores_picnic > 1:  # buy long
+                    orders_picnic_basket.append(
+                        Order('PICNIC_BASKET', picnic_basket_mid_price - 0.5, -picnic_basket_sell))
 
-            if zscores_picnic < -1:  # sell short first
-                orders_picnic_basket.append(
-                    Order('PICNIC_BASKET', picnic_basket_mid_price + 0.5, picnic_basket_buy))
-            elif zscores_picnic > 1:  # buy long
-                orders_picnic_basket.append(
-                    Order('PICNIC_BASKET', picnic_basket_mid_price - 0.5, -picnic_basket_sell))
-
-            result['PICNIC_BASKET'] = orders_picnic_basket
+                result['PICNIC_BASKET'] = orders_picnic_basket
 
         # logger.flush(state, result)
         return result
