@@ -156,11 +156,11 @@ class Trader:
             #             self.enter_time = 0
             #             self.position = 0
             #
-            #     if zscore > 3.2 and (self.sightings[-1] - self.sightings[-2] > 1):
+            #     if zscore > 3.2 and (self.sightings[-1] - self.sightings[-2] > 2):
             #         orders.append(Order(product, best_ask, can_buy))  # buy everything
             #         self.enter_time = state.timestamp
             #         self.position = 1
-            #     elif zscore < -3.2 and (self.sightings[-2] - self.sightings[-1] > 1):
+            #     elif zscore < -3.2 and (self.sightings[-2] - self.sightings[-1] > 2):
             #         orders.append(Order(product, best_bid, -can_sell))  # short everything
             #         self.enter_time = state.timestamp
             #         self.position = -1
@@ -203,50 +203,51 @@ class Trader:
             #         orders.append(Order(product, bid_price, can_buy))
             #     result[product] = orders
 
-            # if product == 'BANANAS':
-            #     sell_changed = False
-            #     buy_changed = False
-            #     order_depth: OrderDepth = state.order_depths[product]
-            #     orders: list[Order] = []
-            #
-            #     if product in state.position.keys():
-            #         current_position = state.position[product]
-            #     else:
-            #         current_position = 0
-            #
-            #     can_buy = 20 - current_position
-            #     can_sell = 20 - (-1 * current_position)
-            #
-            #     worst_ask = max(order_depth.sell_orders.keys())
-            #     worst_bid = min(order_depth.buy_orders.keys())
-            #     best_ask = min(order_depth.sell_orders.keys())
-            #     best_bid = max(order_depth.buy_orders.keys())
-            #     mid_price = (best_ask + best_bid) / 2
-            #
-            #     sell_price = worst_ask - 1 - (current_position / 20)
-            #     bid_price = worst_bid + 1 - (current_position / 20)
-            #
-            #     if "BANANAS" in state.market_trades:
-            #         for trade in state.market_trades["BANANAS"]:
-            #             if trade.seller == "Olivia":
-            #                 sell_price = trade.price
-            #                 sell_changed = True
-            #             if trade.buyer == "Olivia":
-            #                 bid_price = trade.price
-            #                 buy_changed = True
-            #
-            #     if not (sell_changed or buy_changed):
-            #         if sell_price < bid_price:
-            #             sell_price = mid_price
-            #             bid_price = mid_price
-            #
-            #     if not buy_changed:
-            #         orders.append(Order(product, sell_price, -can_sell))
-            #     if not sell_changed:
-            #         orders.append(Order(product, bid_price, can_buy))
-            #
-            #     result[product] = orders
-            #
+            if product == 'BANANAS':
+                sell_changed = False
+                buy_changed = False
+                order_depth: OrderDepth = state.order_depths[product]
+                orders: list[Order] = []
+            
+                if product in state.position.keys():
+                    current_position = state.position[product]
+                else:
+                    current_position = 0
+            
+                can_buy = 20 - current_position
+                can_sell = 20 - (-1 * current_position)
+            
+                worst_ask = max(order_depth.sell_orders.keys())
+                worst_bid = min(order_depth.buy_orders.keys())
+                best_ask = min(order_depth.sell_orders.keys())
+                best_bid = max(order_depth.buy_orders.keys())
+                mid_price = (best_ask + best_bid) / 2
+            
+                sell_price = worst_ask - 1 - (current_position / 20)
+                bid_price = worst_bid + 1 - (current_position / 20)
+            
+                if "BANANAS" in state.market_trades:
+                    for trade in state.market_trades["BANANAS"]:
+                        if trade.timestamp == state.timestamp - 100:
+                            if trade.seller == "Olivia":
+                                sell_price = trade.price
+                                sell_changed = True
+                            if trade.buyer == "Olivia":
+                                bid_price = trade.price
+                                buy_changed = True
+            
+                if not (sell_changed or buy_changed):
+                    if sell_price < bid_price:
+                        sell_price = mid_price
+                        bid_price = mid_price
+            
+                if not buy_changed:
+                    orders.append(Order(product, sell_price, -can_sell))
+                if not sell_changed:
+                    orders.append(Order(product, bid_price, can_buy))
+            
+                result[product] = orders
+            
             # if product == 'PEARLS':
             #
             #     # Retrieve the Order Depth containing all the market BUY and SELL orders for PEARLS

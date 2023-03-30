@@ -104,35 +104,33 @@ class Trader:
                 ukulele_buy = 70 - ukulele_position
                 ukulele_sell = 70 - (-1 * ukulele_position)
 
-                ukelele_trades = state.market_trades.get("UKULELE", [])
-
-                for trade in ukelele_trades:
-                    if trade.timestamp == state.timestamp - 100:
-                        if trade.buyer == "Olivia":
-                            # print("OLIVIA BUY")
-                            # # print(state.timestamp)
-                            # print("OLIVIA BUY PRICE: " + str(trade.price))
-                            # print("UKELELE MID PRICE: " +
-                            #       str(ukulele_mid_price))
-                            self.keep_buying_ukuleles = True
-                            self.keep_selling_ukuleles = False
-                        if trade.seller == "Olivia":
-                            # print(state.timestamp)
-                            # print("OLIVIA SELL")
-                            # print("OLIVIA SELL PRICE: " + str(trade.price))
-                            # print("UKELELE MID PRICE: " +
-                            #       str(ukulele_mid_price))
-                            # orders_ukulele.append(
-                            #     Order("UKULELE", ukulele_mid_price-1, -ukulele_sell))
-                            self.keep_selling_ukuleles = True
-                            self.keep_buying_ukuleles = False
+                if "UKULELE" in state.market_trades:
+                    for trade in state.market_trades["UKULELE"]:
+                        if trade.timestamp == state.timestamp - 100:
+                            if trade.buyer == "Olivia":
+                                # print("OLIVIA BUY")
+                                # # print(state.timestamp)
+                                # print("OLIVIA BUY PRICE: " + str(trade.price))
+                                # print("UKELELE MID PRICE: " +
+                                #       str(ukulele_mid_price))
+                                self.keep_buying_ukuleles = True
+                                self.keep_selling_ukuleles = False
+                            if trade.seller == "Olivia":
+                                # print(state.timestamp)
+                                # print("OLIVIA SELL")
+                                # print("OLIVIA SELL PRICE: " + str(trade.price))
+                                # print("UKELELE MID PRICE: " +
+                                #       str(ukulele_mid_price))
+                                # orders_ukulele.append(
+                                #     Order("UKULELE", ukulele_mid_price-1, -ukulele_sell))
+                                self.keep_selling_ukuleles = True
+                                self.keep_buying_ukuleles = False
 
             if product == "BERRIES":
                 sell_timestamp = 350000
                 buy_timestamp = 500000
                 close = 700000
                 order_depth: OrderDepth = state.order_depths[product]
-                orders: list[Order] = []
 
                 if product in state.position.keys():
                     current_position = state.position[product]
@@ -153,16 +151,15 @@ class Trader:
                     sell_price = berries_mid_price
                     bid_price = berries_mid_price
 
-                berries_trades = state.market_trades.get("BERRIES", [])
-
-                for trade in berries_trades:
-                    if trade.timestamp == state.timestamp - 100:
-                        if trade.buyer == "Olivia":
-                            self.keep_buying_berries = True
-                            self.keep_selling_berries = False
-                        if trade.seller == "Olivia":
-                            self.keep_selling_berries = True
-                            self.keep_buying_berries = False
+                if "BERRIES" in state.market_trades:
+                    for trade in state.market_trades["BERRIES"]:
+                        if trade.timestamp == state.timestamp - 100:
+                            if trade.buyer == "Olivia":
+                                self.keep_buying_berries = True
+                                self.keep_selling_berries = False
+                            if trade.seller == "Olivia":
+                                self.keep_selling_berries = True
+                                self.keep_buying_berries = False
 
                 if self.keep_buying_berries is False and self.keep_selling_berries is False:
                     if state.timestamp >= sell_timestamp and state.timestamp < buy_timestamp:  # buy
@@ -195,7 +192,7 @@ class Trader:
             orders_berries.append(
                 Order("BERRIES", berries_mid_price-1, -berries_sell))
 
-        # result['UKULELE'] = orders_ukulele
+        result['UKULELE'] = orders_ukulele
         result["BERRIES"] = orders_berries
 
         # logger.flush(state, result)

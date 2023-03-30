@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 from datamodel import *
-from algo_trading_day_5 import Trader
+from ukelele import Trader
 
 
 def simulate(round: int, day: int, trader):
