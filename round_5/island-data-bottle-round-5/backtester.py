@@ -106,8 +106,4 @@ def simulate(round: int, day: int, trader):
 
 
 if __name__ == '__main__':
-<<<<<<< HEAD
-    simulate(4, 2, Trader())
-=======
     simulate(4, 3, Trader())
->>>>>>> d28329a03a0c231514664bd60705f54626d61058

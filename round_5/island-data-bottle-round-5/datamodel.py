@@ -64,12 +64,10 @@ class TradingState(object):
         
     def toJSON(self):
         return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True)
-    
+
+
 class ProsperityEncoder(JSONEncoder):
         def default(self, o):
-<<<<<<< HEAD
-            return o.__dict__
-=======
             return o.__dict__
 
 
@@ -79,4 +77,3 @@ class OwnTrade:
         self.price: int = price
         self.quantity: int = quantity
         self.counter_party = counter_party
->>>>>>> d28329a03a0c231514664bd60705f54626d61058
