@@ -1,11 +1,7 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 from datamodel import *
-<<<<<<< HEAD
 from algo_trading_day_5 import Trader
-=======
-from ukelele import Trader
->>>>>>> d28329a03a0c231514664bd60705f54626d61058
 
 
 def simulate(round: int, day: int, trader):
@@ -106,4 +102,4 @@ def simulate(round: int, day: int, trader):
 
 
 if __name__ == '__main__':
-    simulate(4, 3, Trader())
+    simulate(4, 2, Trader())

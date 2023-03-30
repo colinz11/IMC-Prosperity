@@ -5,24 +5,24 @@ import statistics as s
 from collections import deque
 
 
-class Logger:
-    def __init__(self) -> None:
-        self.logs = ""
-
-    def print(self, *objects: Any, sep: str = " ", end: str = "\n") -> None:
-        self.logs += sep.join(map(str, objects)) + end
-
-    def flush(self, state: TradingState, orders: dict[Symbol, list[Order]]) -> None:
-        print(json.dumps({
-            "state": state,
-            "orders": orders,
-            "logs": self.logs,
-        }, cls=ProsperityEncoder, separators=(",", ":"), sort_keys=True))
-
-        self.logs = ""
-
-
-logger = Logger()
+# class Logger:
+#     def __init__(self) -> None:
+#         self.logs = ""
+#
+#     def print(self, *objects: Any, sep: str = " ", end: str = "\n") -> None:
+#         self.logs += sep.join(map(str, objects)) + end
+#
+#     def flush(self, state: TradingState, orders: dict[Symbol, list[Order]]) -> None:
+#         print(json.dumps({
+#             "state": state,
+#             "orders": orders,
+#             "logs": self.logs,
+#         }, cls=ProsperityEncoder, separators=(",", ":"), sort_keys=True))
+#
+#         self.logs = ""
+#
+#
+# logger = Logger()
 
 
 class ExponentialMovingAverage:
@@ -440,6 +440,7 @@ class Trader:
 
         # if self.coco_seen and self.pina_seen:
         #     ratio = coco_mid_price / pc_mid_price
+        #      self.ratios.append(ratio)
         #     zscores = self.zscore(self.ratios)
         #     if 1 < zscores < 3:  # short first
         #         orders_coco.append(Order('COCONUTS', coco_mid_price - 0.5, -coco_sell))
@@ -453,7 +454,6 @@ class Trader:
         if self.picnic_seen and self.dip_seen and self.uk_seen and self.bag_seen:
             picnic_ratio = picnic_basket_mid_price / \
                 (2 * baguette_mid_price + 4*dip_mid_price + ukulele_mid_price)
-            self.ratios.append(ratio)
             self.ratios_picnic.append(picnic_ratio)
 
 
@@ -462,18 +462,18 @@ class Trader:
 
             if zscores_picnic < -1:  # sell short first
                 orders_baguette.append(
-                    Order('BAGUETTE', baguette_mid_price + 0.5, baguette_buy))
-                orders_dip.append(Order('DIP', dip_mid_price+0.5, dip_buy))
+                    Order('BAGUETTE', baguette_mid_price - 0.5, -min(baguette_sell, 2/7*picnic_basket_buy)))
+                orders_dip.append(Order('DIP', dip_mid_price-0.5, -min(dip_sell, 4/7*picnic_basket_buy)))
                 orders_ukulele.append(
-                    Order('UKULELE', ukulele_mid_price+0.5, ukulele_buy))
+                    Order('UKULELE', ukulele_mid_price-0.5, -min(ukulele_sell, 1/7*picnic_basket_buy)))
                 orders_picnic_basket.append(
                     Order('PICNIC_BASKET', picnic_basket_mid_price + 0.5, picnic_basket_buy))
             elif zscores_picnic > 1:  # buy long
                 orders_baguette.append(
-                    Order('BAGUETTE', baguette_mid_price - 0.5, -baguette_sell))
-                orders_dip.append(Order('DIP', dip_mid_price-0.5, -dip_sell))
+                    Order('BAGUETTE', baguette_mid_price + 0.5, min(baguette_buy, 2/7*picnic_basket_sell)))
+                orders_dip.append(Order('DIP', dip_mid_price+0.5, min(dip_buy, 4/7*picnic_basket_sell)))
                 orders_ukulele.append(
-                    Order('UKULELE', ukulele_mid_price-0.5, -ukulele_sell))
+                    Order('UKULELE', ukulele_mid_price+0.5, min(ukulele_buy, 1/7*picnic_basket_sell)))
                 orders_picnic_basket.append(
                     Order('PICNIC_BASKET', picnic_basket_mid_price - 0.5, -picnic_basket_sell))
 
@@ -483,5 +483,5 @@ class Trader:
             result['UKULELE'] = orders_ukulele
             result['PICNIC_BASKET'] = orders_picnic_basket
 
-        logger.flush(state, result)
+        # logger.flush(state, result)
         return result
