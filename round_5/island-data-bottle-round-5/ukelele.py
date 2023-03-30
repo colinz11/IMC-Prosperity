@@ -98,9 +98,13 @@ class Trader:
 
                 for trade in ukelele_trades:
                     if trade.buyer == "Olivia":
-                        orders_ukulele.append(Order("UKULELE", trade.price, ukulele_buy))
+                        # print("OLIVIA BUY")
+                        orders_ukulele.append(
+                            Order("UKULELE", trade.price, ukulele_buy))
                     if trade.seller == "Olivia":
-                        orders_ukulele.append(Order("UKULELE", trade.price, -ukulele_sell))
-        
+                        # print("OLIVIA SELL")
+                        orders_ukulele.append(
+                            Order("UKULELE", trade.price, -ukulele_sell))
+        result['UKULELE'] = orders_ukulele
         #logger.flush(state, result)
         return result
