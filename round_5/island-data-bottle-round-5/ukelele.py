@@ -83,10 +83,19 @@ class Trader:
 
         result = {}
         orders_ukulele: list[Order] = []
+        keep_buying = False
+        keep_selling = False
 
         for product in state.order_depths.keys():
             if product == "UKULELE":
                 ukelele_trades = state.market_trades.get("UKULELE", [])
+
+                ukulele_order_depth: OrderDepth = state.order_depths[product]
+                ukulele_best_ask = min(ukulele_order_depth.sell_orders.keys())
+                # ukelele_worst_ask = max(ukulele_order_depth.sell_orders.keys())
+                ukulele_best_bid = max(ukulele_order_depth.buy_orders.keys())
+                # ukelele_worst_bid = min(ukulele_order_depth.buy_orders.keys())
+                ukulele_mid_price = (ukulele_best_ask + ukulele_best_bid) / 2
 
                 if product in state.position.keys():
                     ukulele_position = state.position[product]
@@ -96,15 +105,37 @@ class Trader:
                 ukulele_buy = 70 - ukulele_position
                 ukulele_sell = 70 - (-1 * ukulele_position)
 
+                # print(len(ukelele_trades))
+
                 for trade in ukelele_trades:
-                    if trade.buyer == "Olivia":
-                        # print("OLIVIA BUY")
-                        orders_ukulele.append(
-                            Order("UKULELE", trade.price, ukulele_buy))
-                    if trade.seller == "Olivia":
-                        # print("OLIVIA SELL")
-                        orders_ukulele.append(
-                            Order("UKULELE", trade.price, -ukulele_sell))
+                    if trade.timestamp == state.timestamp - 100:
+                        if trade.buyer == "Olivia":
+                            # print("OLIVIA BUY")
+                            # # print(state.timestamp)
+                            # print("OLIVIA BUY PRICE: " + str(trade.price))
+                            # print("UKELELE MID PRICE: " +
+                            #       str(ukulele_mid_price))
+                            keep_buying = True
+                            keep_selling = False
+                        if trade.seller == "Olivia":
+                            # print(state.timestamp)
+                            # print("OLIVIA SELL")
+                            # print("OLIVIA SELL PRICE: " + str(trade.price))
+                            # print("UKELELE MID PRICE: " +
+                            #       str(ukulele_mid_price))
+                            # orders_ukulele.append(
+                            #     Order("UKULELE", ukulele_mid_price-1, -ukulele_sell))
+                            keep_selling = True
+                            keep_buying = False
+
+        if keep_buying:
+            orders_ukulele.append(
+                Order("UKULELE", ukulele_mid_price + 1, ukulele_buy))
+
+        if keep_selling:
+            orders_ukulele.append(
+                Order("UKULELE", ukulele_mid_price - 1, -ukulele_sell))
+
         result['UKULELE'] = orders_ukulele
         #logger.flush(state, result)
         return result
