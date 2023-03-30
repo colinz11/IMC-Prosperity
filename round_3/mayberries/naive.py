@@ -15,7 +15,7 @@ class Trader:
         for product in state.order_depths.keys():
             
             if product == 'BERRIES':
-                sell_timestamp = 350000
+                sell_timestamp = 300000
                 buy_timestamp = 500000
                 close = 700000
                 order_depth: OrderDepth = state.order_depths[product]
