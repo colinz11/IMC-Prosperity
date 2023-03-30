@@ -34,7 +34,7 @@ def BolBand(df):
 
 def rescale(x):
     if x < 5000:
-        return 20 * x + 37000
+        return 20 * x + 37500
     else:
         return x
 
@@ -62,10 +62,23 @@ def graph_bolbands(df):
     fig.show()
 
 
-def rescaled_graph(df):
+def simple_graph(df):
+    fig = go.Figure
+    fig.add_trace(go.Scatter(name='mid_price', x=df['timestamp'], y=df['mid_price']))
+
+
+def rescaled_graph(df, scale_factor, shift):
     df['mid_price'] = df['mid_price'].map(rescale)
     fig = px.line(df, x='timestamp', y='mid_price', color='product', line_group='product', hover_name='product')
     fig.show()
+
+
+def pnl_graph(df):
+    fig = go.Figure()
+    #fig.add_trace(go.Scatter(name='profit_and_loss', x=df['timestamp'], y=df['profit_and_loss']))
+    fig.add_trace(go.Scatter(name='mid_price', x=df['timestamp'], y=df['mid_price']))
+    fig.show()
+
 
 def main():
     fileName = "prices_round_4_day_4.csv"
@@ -77,8 +90,8 @@ def main():
     df.drop(df.loc[df['product'] == "PINA_COLADAS"].index, inplace=True)
     df.drop(df.loc[df['product'] == "BERRIES"].index, inplace=True)
     df.drop(df.loc[df['product'] == "DIVING_GEAR"].index, inplace=True)
-    # df.drop(df.loc[df['product'] == "DOLPHIN_SIGHTINGS"].index, inplace=True)
-    df.drop(df.loc[df['product'] == "PICNIC_BASKET"].index, inplace=True)
+    df.drop(df.loc[df['product'] == "DOLPHIN_SIGHTINGS"].index, inplace=True)
+    # df.drop(df.loc[df['product'] == "PICNIC_BASKET"].index, inplace=True)
     df.drop(df.loc[df['product'] == "DIP"].index, inplace=True)
     df.drop(df.loc[df['product'] == "BAGUETTE"].index, inplace=True)
     df.drop(df.loc[df['product'] == "UKULELE"].index, inplace=True)
@@ -89,7 +102,9 @@ def main():
 
     # Superimposed both diving gear and dolphin sightings on each other
 
-    rescaled_graph(df)
+    # rescaled_graph(df)
+
+    pnl_graph(df)
 
 #
 main()
